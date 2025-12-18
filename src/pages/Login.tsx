@@ -151,20 +151,28 @@ export default function Login() {
 
                     {/* Customer Magic Link Demos */}
                     <div className="pt-4 border-t border-white/10 mt-4">
-                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Customer Access (Public Links)</h4>
-                        <div className="grid grid-cols-2 gap-3">
+                        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Customer Access</h4>
+                        <div className="space-y-2">
                             <button
-                                onClick={() => navigate('/track/101')}
-                                className="px-3 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-400/20 text-blue-200 text-xs font-medium smooth-transition flex items-center justify-center gap-2"
+                                onClick={() => navigate('/customer/jobs/8291')}
+                                className="w-full px-4 py-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/20 text-emerald-200 text-sm font-medium smooth-transition flex items-center justify-center gap-2"
                             >
-                                <span>📍</span> Tracker
+                                <span>🏠</span> Customer Portal Demo
                             </button>
-                            <button
-                                onClick={() => navigate('/materials/demo-token-101')}
-                                className="px-3 py-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 border border-green-400/20 text-green-200 text-xs font-medium smooth-transition flex items-center justify-center gap-2"
-                            >
-                                <span>📦</span> Materials
-                            </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => navigate('/track/101')}
+                                    className="px-3 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-400/20 text-blue-200 text-xs font-medium smooth-transition flex items-center justify-center gap-2"
+                                >
+                                    <span>📍</span> Tracker
+                                </button>
+                                <button
+                                    onClick={() => navigate('/materials/demo-token-101')}
+                                    className="px-3 py-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 border border-green-400/20 text-green-200 text-xs font-medium smooth-transition flex items-center justify-center gap-2"
+                                >
+                                    <span>📦</span> Materials
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </Card>

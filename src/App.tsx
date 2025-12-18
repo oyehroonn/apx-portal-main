@@ -42,6 +42,7 @@ import MaterialDeliveryConfirmation from './pages/customer/MaterialDeliveryConfi
 import CustomerTracker from './pages/customer/CustomerTracker';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import CustomerCredentials from './pages/customer/CustomerCredentials';
+import CustomerJobView from './pages/customer/CustomerJobView';
 import CustomerPortalLayout from './layouts/CustomerPortalLayout';
 
 function App() {
@@ -267,6 +268,7 @@ function App() {
                 {/* Public Magic Links */}
                 <Route path="/quote/:token" element={<QuoteApproval />} />
                 <Route path="/customer/credentials" element={<CustomerCredentials />} />
+                <Route path="/customer/jobs/:jobId" element={<CustomerJobView />} />
 
                 {/* Redirect root to login or dashboard based on auth */}
                 <Route
