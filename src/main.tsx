@@ -5,13 +5,16 @@ import App from './App'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ContractorJobsProvider } from './context/ContractorJobsContext'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <BrowserRouter>
             <ThemeProvider>
                 <AuthProvider>
-                    <App />
+                    <ContractorJobsProvider>
+                        <App />
+                    </ContractorJobsProvider>
                 </AuthProvider>
             </ThemeProvider>
         </BrowserRouter>

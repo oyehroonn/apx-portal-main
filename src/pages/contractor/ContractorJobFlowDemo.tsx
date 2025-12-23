@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useContractorJobs } from '@/context/ContractorJobsContext';
 import '@/styles/customerPortal.css';
 import {
   ArrowRight,
@@ -23,6 +24,8 @@ type RoleChoice = 'customer' | 'contractor';
 
 export default function ContractorJobFlowDemo() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { addCompletedJob } = useContractorJobs();
   const autoView = useMemo(() => new URLSearchParams(location.search).get('auto') === '1', [location.search]);
 
   const [currentRole, setCurrentRole] = useState<RoleChoice>('contractor');
@@ -685,6 +688,24 @@ export default function ContractorJobFlowDemo() {
 
                       <button
                         type="button"
+                        onClick={() => {
+                          // Add completed job
+                          addCompletedJob({
+                            id: `job-${Date.now()}`,
+                            jobName: 'Master Bath Renovation',
+                            customerName: 'Sarah Johnson',
+                            address: '1248 Highland Ave',
+                            completedDate: new Date().toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            }),
+                            estimatedPay: '$4,250.00',
+                            description: 'Complete bathroom renovation including tile installation, plumbing fixtures, and lighting.',
+                          });
+                          // Navigate back to contractor portal
+                          navigate('/contractor/portal');
+                        }}
                         className="w-full py-4 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
                       >
                         <ArrowRight className="w-4 h-4" /> Submit Final Report
