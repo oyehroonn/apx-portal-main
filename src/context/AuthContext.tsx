@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '@/types';
-import { getUserByEmail, users } from '@/data/mockData';
+import { getUserByEmail } from '@/data/mockData';
+
+const API_BASE_URL = 'http://192.168.100.58:5001/api';
 
 interface AuthContextType {
     currentUser: User | null;
-    login: (email: string) => Promise<void>;
+    login: (email: string, password?: string) => Promise<void>;
     logout: () => void;
     updateUser: (updates: Partial<User>) => void;
     isAuthenticated: boolean;
@@ -23,9 +25,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const login = async (email: string) => {
+    const login = async (email: string, password?: string) => {
+        // Try API login first if password is provided
+        if (password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const profile = data.profile;
+                    
+                    // Convert API profile to User format
+                    const user: User = {
+                        id: parseInt(profile.profileID?.replace(/\D/g, '') || '0') || 0,
+                        name: profile.email?.split('@')[0] || 'User',
+                        email: profile.email,
+                        role: profile.user_role as User['role'],
+                        profileID: profile.profileID,
+                    };
+                    
+                    setCurrentUser(user);
+                    sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    return;
+                }
+            } catch (error) {
+                console.error('API login failed, falling back to mock data:', error);
+            }
+        }
+        
+        // Fallback to mock data for demo users
         const user = getUserByEmail(email);
         if (user) {
+            // Try to get profileID from API if available
+            try {
+                const response = await fetch(`${API_BASE_URL}/profiles`);
+                if (response.ok) {
+                    const profiles = await response.json();
+                    const profile = profiles.find((p: any) => p.email === email);
+                    if (profile) {
+                        user.profileID = profile.profileID;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch profileID:', error);
+            }
+            
             setCurrentUser(user);
             sessionStorage.setItem('currentUser', JSON.stringify(user));
         } else {

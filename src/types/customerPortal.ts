@@ -1,4 +1,4 @@
-export type WorkflowStep = 'overview' | 'quote' | 'materials' | 'progress' | 'completion';
+export type WorkflowStep = 'job-management' | 'overview' | 'quote' | 'materials' | 'progress' | 'completion';
 
 export interface Contractor {
     id: string;

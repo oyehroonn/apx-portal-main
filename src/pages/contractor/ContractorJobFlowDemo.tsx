@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useContractorJobs } from '@/context/ContractorJobsContext';
+import { useJobs } from '@/context/JobsContext';
 import '@/styles/customerPortal.css';
 import {
   ArrowRight,
@@ -26,12 +27,34 @@ export default function ContractorJobFlowDemo() {
   const location = useLocation();
   const navigate = useNavigate();
   const { addCompletedJob } = useContractorJobs();
+  const { getJobById, updateContractorProgress, updateJob } = useJobs();
   const autoView = useMemo(() => new URLSearchParams(location.search).get('auto') === '1', [location.search]);
+  const jobId = useMemo(() => new URLSearchParams(location.search).get('jobId'), [location.search]);
+  const job = jobId ? getJobById(jobId) : null;
 
   const [currentRole, setCurrentRole] = useState<RoleChoice>('contractor');
   const [view, setView] = useState<'login' | 'customer' | 'contractor'>(autoView ? 'contractor' : 'login');
   const [acknowledged, setAcknowledged] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  // Load saved progress on mount
+  useEffect(() => {
+    if (job?.contractorProgress) {
+      setStep(job.contractorProgress.currentStep);
+      setAcknowledged(job.contractorProgress.acknowledged);
+    }
+  }, [job]);
+
+  // Save progress when step or acknowledged changes
+  useEffect(() => {
+    if (jobId && view === 'contractor' && step >= 1) {
+      updateContractorProgress(jobId, {
+        currentStep: step,
+        acknowledged,
+        lastUpdated: new Date().toISOString(),
+      });
+    }
+  }, [step, acknowledged, jobId, view, updateContractorProgress]);
 
   const handleEnter = () => {
     if (currentRole === 'contractor') {
@@ -44,6 +67,13 @@ export default function ContractorJobFlowDemo() {
 
   const goToStep = (next: 1 | 2 | 3 | 4 | 5) => {
     setStep(next);
+    if (jobId) {
+      updateContractorProgress(jobId, {
+        currentStep: next,
+        acknowledged,
+        lastUpdated: new Date().toISOString(),
+      });
+    }
   };
 
   const stepTitle = ['Acknowledgment', 'Walkthrough', 'Quote', 'Progress', 'Completion'][step - 1];
@@ -688,23 +718,32 @@ export default function ContractorJobFlowDemo() {
 
                       <button
                         type="button"
-                        onClick={() => {
-                          // Add completed job
-                          addCompletedJob({
-                            id: `job-${Date.now()}`,
-                            jobName: 'Master Bath Renovation',
-                            customerName: 'Sarah Johnson',
-                            address: '1248 Highland Ave',
-                            completedDate: new Date().toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            }),
-                            estimatedPay: '$4,250.00',
-                            description: 'Complete bathroom renovation including tile installation, plumbing fixtures, and lighting.',
-                          });
-                          // Navigate back to contractor portal
-                          navigate('/contractor/portal');
+                        onClick={async () => {
+                          if (job) {
+                            try {
+                              // Mark job as complete
+                              await updateJob(job.id, { status: 'Complete' });
+                              // Add to completed jobs
+                              addCompletedJob({
+                                id: job.id,
+                                jobName: job.jobName,
+                                customerName: job.customerName,
+                                address: `${job.propertyAddress}, ${job.city}`,
+                                completedDate: new Date().toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                }),
+                                estimatedPay: job.estimatedPay,
+                                description: job.description,
+                              });
+                              // Navigate back to contractor portal
+                              navigate('/contractor/portal');
+                            } catch (error: any) {
+                              console.error('Failed to complete job:', error);
+                              alert(`Failed to submit report: ${error.message || 'Unknown error'}`);
+                            }
+                          }
                         }}
                         className="w-full py-4 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
                       >

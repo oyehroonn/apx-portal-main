@@ -35,10 +35,44 @@ export function ContractorJobsProvider({ children }: { children: React.ReactNode
     }
   }, []);
 
+  // Listen for storage events to sync across tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          setCompletedJobs(JSON.parse(e.newValue));
+        } catch (e) {
+          console.error('Failed to sync completed jobs from storage event:', e);
+        }
+      }
+    };
+
+    // Also listen for custom storage events (for same-tab updates)
+    const handleCustomStorage = () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          setCompletedJobs(JSON.parse(stored));
+        } catch (e) {
+          console.error('Failed to sync completed jobs from custom event:', e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localStorageUpdate', handleCustomStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageUpdate', handleCustomStorage);
+    };
+  }, []);
+
   const addCompletedJob = (job: CompletedJob) => {
     const updated = [job, ...completedJobs];
     setCompletedJobs(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    // Dispatch custom event for same-tab updates
+    window.dispatchEvent(new CustomEvent('localStorageUpdate'));
   };
 
   return (

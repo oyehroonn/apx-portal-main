@@ -42,10 +42,10 @@ import ReportIssue from './pages/customer/ReportIssue';
 import MaterialPurchaseStatus from './pages/customer/MaterialPurchaseStatus';
 import MaterialDeliveryConfirmation from './pages/customer/MaterialDeliveryConfirmation';
 import CustomerTracker from './pages/customer/CustomerTracker';
-import CustomerDashboard from './pages/customer/CustomerDashboard';
 import CustomerCredentials from './pages/customer/CustomerCredentials';
 import CustomerJobView from './pages/customer/CustomerJobView';
 import CustomerPortalLayout from './layouts/CustomerPortalLayout';
+import TestAPI from './pages/TestAPI';
 
 function App() {
     const { isAuthenticated, currentUser } = useAuth();
@@ -55,6 +55,7 @@ function App() {
             <Routes>
                 {/* Public Routes */}
                 <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
+                <Route path="/test-api" element={<TestAPI />} />
                 <Route path="/track/:jobId" element={<CustomerTracker />} />
 
                 {/* Contractor Portal */}
@@ -249,11 +250,20 @@ function App() {
                     }
                 />
 
-                {/* Customer Portal */}
+                {/* Customer Portal - Dashboard (uses LayoutShell with its own sidebar) */}
+                <Route
+                    path="/customer/dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={['customer']}>
+                            <CustomerJobView />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Customer Portal - Other pages (use CustomerPortalLayout) */}
                 <Route element={<ProtectedRoute allowedRoles={['customer']}>
                     <CustomerPortalLayout />
                 </ProtectedRoute>}>
-                    <Route path="/customer/dashboard" element={<CustomerDashboard />} />
                     <Route path="/materials/:token" element={<MaterialPurchaseStatus />} />
                     <Route path="/materials/:token/delivery" element={<MaterialDeliveryConfirmation />} />
                     <Route path="/issue/:token" element={<ReportIssue />} />
@@ -262,7 +272,6 @@ function App() {
                 {/* Public Magic Links */}
                 <Route path="/quote/:token" element={<QuoteApproval />} />
                 <Route path="/customer/credentials" element={<CustomerCredentials />} />
-                <Route path="/customer/jobs/:jobId" element={<CustomerJobView />} />
 
                 {/* Redirect root to login or dashboard based on auth */}
                 <Route

@@ -6,19 +6,51 @@ import QuoteApprovalView from './QuoteApprovalView';
 import MaterialSourcingView from './MaterialSourcingView';
 import LiveTrackingView from './LiveTrackingView';
 import CompletionView from './CompletionView';
+import JobManagementView from './JobManagementView';
+import { useJobs } from '@/context/JobsContext';
+import { convertJobToCustomerPortal } from '@/utils/jobConverter';
+import { mockCustomerJob } from '@/data/customerPortalMockData';
 import type { CustomerJob, WorkflowStep } from '@/types/customerPortal';
 
 interface LayoutShellProps {
-    job: CustomerJob;
+    job?: CustomerJob;
     customerName?: string;
     customerAvatar?: string;
 }
 
-export default function LayoutShell({ job, customerName, customerAvatar }: LayoutShellProps) {
-    const [currentStep, setCurrentStep] = useState<WorkflowStep>('overview');
+export default function LayoutShell({ job: initialJob, customerName, customerAvatar }: LayoutShellProps) {
+    const { getJobById } = useJobs();
+    const [currentStep, setCurrentStep] = useState<WorkflowStep>('job-management');
+    const [selectedJob, setSelectedJob] = useState<CustomerJob | null>(initialJob || null);
 
     const handleStepChange = (step: WorkflowStep) => {
-        setCurrentStep(step);
+        // If clicking on job-management, deselect the job and go back to job management
+        if (step === 'job-management') {
+            setSelectedJob(null);
+            setCurrentStep('job-management');
+        } else {
+            // For other steps, ensure a job is selected
+            if (!selectedJob && step !== 'job-management') {
+                // Don't allow navigation to workflow steps without a selected job
+                return;
+            }
+            setCurrentStep(step);
+        }
+    };
+
+    const handleJobSelect = (jobId: string) => {
+        // Get real job data from JobsContext
+        const realJob = getJobById(jobId);
+        if (realJob) {
+            // Convert to CustomerPortal format
+            const convertedJob = convertJobToCustomerPortal(realJob);
+            setSelectedJob(convertedJob);
+            setCurrentStep('overview');
+        } else {
+            // Fallback to mock if job not found
+            setSelectedJob(mockCustomerJob);
+            setCurrentStep('overview');
+        }
     };
 
     const handleQuoteApprove = () => {
@@ -31,20 +63,46 @@ export default function LayoutShell({ job, customerName, customerAvatar }: Layou
 
     const renderCurrentView = () => {
         switch (currentStep) {
+            case 'job-management':
+                return <JobManagementView onJobSelect={handleJobSelect} />;
             case 'overview':
-                return <JobOverviewView job={job} />;
+                if (!selectedJob) {
+                    // If no job selected, go back to job management
+                    setCurrentStep('job-management');
+                    return <JobManagementView onJobSelect={handleJobSelect} />;
+                }
+                return <JobOverviewView job={selectedJob} />;
             case 'quote':
-                return <QuoteApprovalView job={job} onApprove={handleQuoteApprove} />;
+                if (!selectedJob) {
+                    setCurrentStep('job-management');
+                    return <JobManagementView onJobSelect={handleJobSelect} />;
+                }
+                return <QuoteApprovalView job={selectedJob} onApprove={handleQuoteApprove} />;
             case 'materials':
-                return <MaterialSourcingView job={job} onSelfSourcing={handleMaterialSelfSourcing} />;
+                if (!selectedJob) {
+                    setCurrentStep('job-management');
+                    return <JobManagementView onJobSelect={handleJobSelect} />;
+                }
+                return <MaterialSourcingView job={selectedJob} onSelfSourcing={handleMaterialSelfSourcing} />;
             case 'progress':
-                return <LiveTrackingView job={job} />;
+                if (!selectedJob) {
+                    setCurrentStep('job-management');
+                    return <JobManagementView onJobSelect={handleJobSelect} />;
+                }
+                return <LiveTrackingView job={selectedJob} />;
             case 'completion':
-                return <CompletionView job={job} />;
+                if (!selectedJob) {
+                    setCurrentStep('job-management');
+                    return <JobManagementView onJobSelect={handleJobSelect} />;
+                }
+                return <CompletionView job={selectedJob} />;
             default:
-                return <JobOverviewView job={job} />;
+                return <JobManagementView onJobSelect={handleJobSelect} />;
         }
     };
+
+    // Show header only when a job is selected and not on job-management view
+    const displayJob = selectedJob || initialJob;
 
     return (
         <div className="flex h-screen w-full relative">
@@ -53,10 +111,18 @@ export default function LayoutShell({ job, customerName, customerAvatar }: Layou
                 onStepChange={handleStepChange}
                 customerName={customerName}
                 customerAvatar={customerAvatar}
+                hasSelectedJob={!!selectedJob}
             />
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950 relative">
-                <TopHeader jobTitle={job.title} jobId={job.id} address={job.address} isActive={job.status === 'active'} />
+                {selectedJob && currentStep !== 'job-management' && (
+                    <TopHeader 
+                        jobTitle={selectedJob.title} 
+                        jobId={selectedJob.id} 
+                        address={selectedJob.address} 
+                        isActive={selectedJob.status === 'active'} 
+                    />
+                )}
 
                 <div className="flex-1 overflow-y-auto relative scroll-smooth bg-grid-pattern">
                     {renderCurrentView()}

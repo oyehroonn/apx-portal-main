@@ -6,15 +6,18 @@ import './index.css'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ContractorJobsProvider } from './context/ContractorJobsContext'
+import { JobsProvider } from './context/JobsContext'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <BrowserRouter>
             <ThemeProvider>
                 <AuthProvider>
-                    <ContractorJobsProvider>
-                        <App />
-                    </ContractorJobsProvider>
+                    <JobsProvider>
+                        <ContractorJobsProvider>
+                            <App />
+                        </ContractorJobsProvider>
+                    </JobsProvider>
                 </AuthProvider>
             </ThemeProvider>
         </BrowserRouter>

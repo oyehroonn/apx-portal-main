@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -16,7 +17,6 @@ import {
   User,
   Calendar,
   Home,
-  Hammer,
   SlidersHorizontal,
   ChevronRight,
   ChevronDown,
@@ -30,23 +30,52 @@ import {
   X,
 } from 'lucide-react';
 import { useContractorJobs } from '@/context/ContractorJobsContext';
+import { useJobs } from '@/context/JobsContext';
+import { useAuth } from '@/context/AuthContext';
 import '@/styles/customerPortal.css';
 
 type TabId = 'dashboard' | 'compliance' | 'jobs' | 'wallet';
 
 export default function ContractorPortal() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const { completedJobs, completedJobsCount } = useContractorJobs();
+  const { getAvailableJobs, getJobsByContractor, assignContractor, refreshJobs } = useJobs();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [showCompletedJobs, setShowCompletedJobs] = useState(false);
 
+  // Refresh jobs when component mounts or when switching tabs
+  React.useEffect(() => {
+    refreshJobs();
+  }, [refreshJobs]);
+
   const switchTab = (tabId: TabId) => {
     setActiveTab(tabId);
+    refreshJobs(); // Refresh jobs when switching tabs
   };
 
-  const handleAcceptJob = (jobId?: number) => {
-    // Navigate to onboarding flow when accepting/starting a job (skip login view)
-    navigate('/contractor/job-flow-demo?auto=1');
+  // Get jobs - using jobs array directly ensures reactivity to API changes
+  const availableJobs = getAvailableJobs(currentUser?.trade);
+  // Active Projects only shows jobs that have been started (status = 'InProgress')
+  // Use profileID or id for contractor lookup
+  const contractorId = (currentUser as any)?.profileID || (currentUser as any)?.id || currentUser?.id;
+  const activeJobs = contractorId ? getJobsByContractor(contractorId).filter(j => j.status === 'InProgress') : [];
+
+  const handleAcceptJob = async (jobId: string) => {
+    const contractorId = (currentUser as any)?.profileID || (currentUser as any)?.id || currentUser?.id;
+    if (contractorId) {
+      try {
+        await assignContractor(jobId, contractorId);
+        navigate(`/contractor/job-flow-demo?auto=1&jobId=${jobId}`);
+      } catch (error: any) {
+        console.error('Failed to assign job:', error);
+        alert(`Failed to accept job: ${error.message || 'Unknown error'}`);
+      }
+    }
+  };
+
+  const handleResumeJob = (jobId: string) => {
+    navigate(`/contractor/job-flow-demo?auto=1&jobId=${jobId}`);
   };
 
   const pageTitles: Record<TabId, string> = {
@@ -304,116 +333,140 @@ export default function ContractorPortal() {
                   <button className="text-xs text-slate-500 hover:text-white transition-colors">View All</button>
                 </div>
 
-                {/* Project Card */}
-                <div className="glass-panel p-0 rounded-2xl overflow-hidden group border border-emerald-500/20 shadow-[0_0_10px_-2px_rgba(16,185,129,0.3)] transition-all hover:border-emerald-500/40">
-                  <div className="flex flex-col md:flex-row">
-                    {/* Map visual placeholder */}
-                    <div className="h-32 md:h-auto md:w-48 bg-slate-800 relative overflow-hidden">
-                      <div className="absolute inset-0 opacity-30 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-118.4,34.0,12,0/400x400?access_token=pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGZ4...')] bg-cover bg-center mix-blend-overlay" />
-                      <div className="absolute inset-0 bg-emerald-900/20 mix-blend-overlay" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]">
-                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 flex-1 flex flex-col md:flex-row gap-6 items-center">
-                      <div className="flex-1 space-y-2 text-center md:text-left">
-                        <div className="flex items-center justify-center md:justify-start gap-2">
-                          <h3 className="text-base font-semibold text-white">Master Bath & Kitchen Remodel</h3>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
-                            IN PROGRESS
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
-                          <span className="flex items-center gap-1.5">
-                            <MapPin className="w-3 h-3" /> 1248 Highland Avenue
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <User className="w-3 h-3" /> Sarah Jenkins
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center md:justify-start gap-4 pt-2">
-                          <div className="text-xs">
-                            <span className="block text-slate-500 uppercase text-[10px] tracking-wider mb-0.5">
-                              Schedule
-                            </span>
-                            <span className="text-slate-200">Oct 24 - Nov 12</span>
-                          </div>
-                          <div className="w-[1px] h-6 bg-white/10" />
-                          <div className="text-xs">
-                            <span className="block text-slate-500 uppercase text-[10px] tracking-wider mb-0.5">
-                              Est. Pay
-                            </span>
-                            <span className="text-white font-medium">$4,250.00</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-xs hover:bg-white/10 transition-colors">
-                          Details
-                        </button>
-                        <button
-                          onClick={() => handleAcceptJob()}
-                          className="px-5 py-2 rounded-full bg-emerald-500 text-slate-900 text-xs font-semibold hover:bg-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)] transition-all flex items-center gap-2"
-                        >
-                          Resume Job <ChevronRight className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
+                {activeJobs.length === 0 ? (
+                  <div className="glass-panel p-8 rounded-2xl border border-white/5 text-center">
+                    <Briefcase className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                    <p className="text-sm text-slate-400">No active projects at the moment.</p>
+                    <p className="text-xs text-slate-500 mt-1">Accept a job from the Job Board to get started.</p>
                   </div>
-                  {/* Progress Bar Bottom */}
-                  <div className="h-1 w-full bg-slate-800">
-                    <div className="h-full w-2/3 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                  </div>
-                </div>
+                ) : (
+                  activeJobs.map((job) => {
+                    // Calculate progress: step 1 = 0%, step 2 = 25%, step 3 = 50%, step 4 = 75%, step 5 = 100%
+                    const currentStep = job.contractorProgress?.currentStep || 1;
+                    const progress = currentStep > 1 ? ((currentStep - 1) / 4) * 100 : 0;
+                    const stepLabels = ['', 'Acknowledgment', 'Walkthrough', 'Quote', 'Progress', 'Completion'];
+                    return (
+                      <div
+                        key={job.id}
+                        className="glass-panel p-0 rounded-2xl overflow-hidden group border border-emerald-500/20 shadow-[0_0_10px_-2px_rgba(16,185,129,0.3)] transition-all hover:border-emerald-500/40"
+                      >
+                        <div className="flex flex-col md:flex-row">
+                          {/* Map visual placeholder */}
+                          <div className="h-32 md:h-auto md:w-48 bg-slate-800 relative overflow-hidden">
+                            <div className="absolute inset-0 opacity-30 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-118.4,34.0,12,0/400x400?access_token=pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGZ4...')] bg-cover bg-center mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-emerald-900/20 mix-blend-overlay" />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]">
+                              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-6 flex-1 flex flex-col md:flex-row gap-6 items-center">
+                            <div className="flex-1 space-y-2 text-center md:text-left">
+                              <div className="flex items-center justify-center md:justify-start gap-2">
+                                <h3 className="text-base font-semibold text-white">{job.jobName}</h3>
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+                                  IN PROGRESS
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
+                                <span className="flex items-center gap-1.5">
+                                  <MapPin className="w-3 h-3" /> {job.propertyAddress}
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <User className="w-3 h-3" /> {job.customerName}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-center md:justify-start gap-4 pt-2">
+                                <div className="text-xs">
+                                  <span className="block text-slate-500 uppercase text-[10px] tracking-wider mb-0.5">
+                                    Current Step
+                                  </span>
+                                  <span className="text-slate-200">
+                                    Step {job.contractorProgress?.currentStep || 1}: {stepLabels[job.contractorProgress?.currentStep || 1]}
+                                  </span>
+                                </div>
+                                <div className="w-[1px] h-6 bg-white/10" />
+                                <div className="text-xs">
+                                  <span className="block text-slate-500 uppercase text-[10px] tracking-wider mb-0.5">
+                                    Est. Pay
+                                  </span>
+                                  <span className="text-white font-medium">{job.estimatedPay}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                              <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-xs hover:bg-white/10 transition-colors">
+                                Details
+                              </button>
+                              <button
+                                onClick={() => handleResumeJob(job.id)}
+                                className="px-5 py-2 rounded-full bg-emerald-500 text-slate-900 text-xs font-semibold hover:bg-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)] transition-all flex items-center gap-2"
+                              >
+                                Resume Job <ChevronRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Progress Bar Bottom */}
+                        <div className="h-1 w-full bg-slate-800">
+                          <div
+                            className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
-              {/* New Opportunities */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-white tracking-tight">New Opportunities</h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Opportunity Cards */}
-                  {[
-                    { trade: 'Painting', title: 'Exterior House Paint', address: '892 Willow Creek Rd', pay: '$2,100' },
-                    { trade: 'Plumbing', title: 'Bathroom Leak Repair', address: '4402 Sunset Blvd', pay: '$450' },
-                    { trade: 'Electrical', title: 'Recessed Lighting Install', address: '210 Ocean Ave', pay: '$1,200' },
-                  ].map((job, idx) => (
-                    <div
-                      key={idx}
-                      className="glass-card p-5 rounded-2xl group hover:border-white/20 transition-all cursor-pointer"
-                      onClick={() => {
-                        switchTab('jobs');
-                      }}
+              {/* New Opportunities - Show available jobs preview */}
+              {availableJobs.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-semibold text-white tracking-tight">New Opportunities</h2>
+                    <button
+                      onClick={() => switchTab('jobs')}
+                      className="text-xs text-slate-500 hover:text-white transition-colors"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="px-2 py-1 rounded bg-slate-800 border border-white/5 text-[10px] text-slate-400">
-                          {job.trade}
+                      View All
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableJobs.slice(0, 3).map((job) => (
+                      <div
+                        key={job.id}
+                        onClick={() => switchTab('jobs')}
+                        className="glass-card p-5 rounded-2xl group hover:border-white/20 transition-all cursor-pointer"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="px-2 py-1 rounded bg-slate-800 border border-white/5 text-[10px] text-slate-400 capitalize">
+                            {job.trade}
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-medium">
+                            OPEN
+                          </span>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-medium">
-                          OPEN
-                        </span>
+                        <h4 className="text-sm font-medium text-white mb-1 group-hover:text-emerald-400 transition-colors">
+                          {job.jobName}
+                        </h4>
+                        <div className="text-xs text-slate-500 mb-4 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {job.propertyAddress}
+                        </div>
+                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                          <span className="text-sm font-semibold text-white">{job.estimatedPay}</span>
+                          <button className="text-xs text-slate-400 group-hover:text-white transition-colors flex items-center gap-1">
+                            View <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
-                      <h4 className="text-sm font-medium text-white mb-1 group-hover:text-emerald-400 transition-colors">
-                        {job.title}
-                      </h4>
-                      <div className="text-xs text-slate-500 mb-4 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {job.address}
-                      </div>
-                      <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                        <span className="text-sm font-semibold text-white">{job.pay}</span>
-                        <button className="text-xs text-slate-400 group-hover:text-white transition-colors flex items-center gap-1">
-                          View <ChevronRight className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -582,102 +635,76 @@ export default function ContractorPortal() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="glass-card p-4 rounded-xl flex items-center justify-between">
                   <span className="text-xs text-slate-400">Available Jobs</span>
-                  <span className="text-lg font-semibold text-white">8</span>
+                  <span className="text-lg font-semibold text-white">{availableJobs.length}</span>
                 </div>
                 <div className="glass-card p-4 rounded-xl flex items-center justify-between border-emerald-500/20 bg-emerald-500/[0.02]">
-                  <span className="text-xs text-emerald-400">Active Bids</span>
-                  <span className="text-lg font-semibold text-emerald-400">3</span>
+                  <span className="text-xs text-emerald-400">Active Jobs</span>
+                  <span className="text-lg font-semibold text-emerald-400">{activeJobs.length}</span>
                 </div>
                 <div className="glass-card p-4 rounded-xl flex items-center justify-between">
-                  <span className="text-xs text-slate-400">Invites</span>
-                  <span className="text-lg font-semibold text-white">1</span>
+                  <span className="text-xs text-slate-400">Completed</span>
+                  <span className="text-lg font-semibold text-white">{completedJobsCount}</span>
                 </div>
               </div>
 
               {/* Job List */}
               <div className="space-y-4">
-                {/* Job 1 */}
-                <div className="glass-panel p-5 rounded-xl hover:border-emerald-500/30 transition-all group">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-base font-semibold text-white">Full Kitchen Renovation - Modern Style</h3>
-                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-medium">
-                          OPEN
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-white/10 text-slate-400 text-[10px]">
-                          FM Verified
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 mb-3">
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" /> 5521 Maple Drive, Beverly Hills
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" /> Start: Nov 15
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Home className="w-3.5 h-3.5" /> 350 sqft
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 line-clamp-2 max-w-2xl">
-                        Complete tear down of existing kitchen cabinetry and flooring. Install new islands, plumbing
-                        fixtures, and lighting. Materials provided by owner.
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-end justify-center min-w-[140px] border-l border-white/5 pl-6">
-                      <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Estimated Pay</span>
-                      <span className="text-xl font-bold text-white mb-3">$12,450.00</span>
-                      <button
-                        onClick={() => handleAcceptJob()}
-                        className="w-full py-2 rounded-full bg-emerald-500 text-slate-900 text-xs font-semibold hover:bg-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)] transition-all"
-                      >
-                        Accept Job
-                      </button>
-                    </div>
+                {availableJobs.length === 0 ? (
+                  <div className="glass-panel p-12 rounded-2xl text-center border border-white/10">
+                    <Briefcase className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No Available Jobs</h3>
+                    <p className="text-slate-400">There are no jobs matching your trade at the moment.</p>
                   </div>
-                </div>
+                ) : (
+                  availableJobs.map((job) => (
+                    <div key={job.id} className="glass-panel p-5 rounded-xl hover:border-emerald-500/30 transition-all group">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-base font-semibold text-white">{job.jobName}</h3>
+                            <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-medium">
+                              OPEN
+                            </span>
+                            {job.materialStatus && (
+                              <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-white/10 text-slate-400 text-[10px]">
+                                {job.materialStatus}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 mb-3">
+                            <span className="flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5" /> {job.propertyAddress}, {job.city}
+                            </span>
+                            {job.scheduledTime && (
+                              <span className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" /> Start: {new Date(job.scheduledTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </span>
+                            )}
+                            {job.squareFootage && (
+                              <span className="flex items-center gap-1.5">
+                                <Home className="w-3.5 h-3.5" /> {job.squareFootage}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 line-clamp-2 max-w-2xl">
+                            {job.description}
+                          </p>
+                        </div>
 
-                {/* Job 2 */}
-                <div className="glass-panel p-5 rounded-xl hover:border-emerald-500/30 transition-all group">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-base font-semibold text-white">Master Bathroom Tile Install</h3>
-                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-medium">
-                          OPEN
-                        </span>
+                        <div className="flex flex-col items-end justify-center min-w-[140px] border-l border-white/5 pl-6">
+                          <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Estimated Pay</span>
+                          <span className="text-xl font-bold text-white mb-3">{job.estimatedPay}</span>
+                          <button
+                            onClick={() => handleAcceptJob(job.id)}
+                            className="w-full py-2 rounded-full bg-emerald-500 text-slate-900 text-xs font-semibold hover:bg-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)] transition-all"
+                          >
+                            Accept Job
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 mb-3">
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" /> 892 Willow Creek Rd
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" /> Start: ASAP
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Hammer className="w-3.5 h-3.5" /> Tiling
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 line-clamp-2 max-w-2xl">
-                        Installation of marble floor tiles and shower walls. Waterproofing required. 4 days estimated
-                        work.
-                      </p>
                     </div>
-
-                    <div className="flex flex-col items-end justify-center min-w-[140px] border-l border-white/5 pl-6">
-                      <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Estimated Pay</span>
-                      <span className="text-xl font-bold text-white mb-3">$2,800.00</span>
-                      <button
-                        onClick={() => handleAcceptJob()}
-                        className="w-full py-2 rounded-full bg-emerald-500 text-slate-900 text-xs font-semibold hover:bg-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)] transition-all"
-                      >
-                        Accept Job
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  ))
+                )}
               </div>
             </div>
           )}

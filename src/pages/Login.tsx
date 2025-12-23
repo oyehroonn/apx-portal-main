@@ -48,7 +48,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            await login(email);
+            await login(email, password);
             const user = users.find((u) => u.email === email);
             if (user) {
                 // Ensure role toggle reflects actual logged-in role
@@ -57,8 +57,8 @@ export default function Login() {
             } else {
                 setError('User not found. Please select a demo user or enter a valid email.');
             }
-        } catch (err) {
-            setError('User not found. Please select a demo user or enter a valid email.');
+        } catch (err: any) {
+            setError(err.message || 'User not found. Please select a demo user or enter a valid email.');
         } finally {
             setLoading(false);
         }
@@ -151,7 +151,17 @@ export default function Login() {
                 </h4>
                 <button
                     type="button"
-                    onClick={() => navigate('/customer/jobs/8291')}
+                    onClick={() => {
+                        // Login as customer demo user and navigate to dashboard
+                        const customerUser = users.find(u => u.role === 'customer');
+                        if (customerUser) {
+                            login(customerUser.email).then(() => {
+                                navigate('/customer/dashboard');
+                            });
+                        } else {
+                            navigate('/customer/dashboard');
+                        }
+                    }}
                     className="w-full px-4 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/25 text-emerald-200 text-xs font-medium transition-colors flex items-center justify-center gap-2"
                 >
                     <span>🏠</span> Customer Portal Demo

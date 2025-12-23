@@ -1,4 +1,4 @@
-import { Home, LayoutDashboard, FileCheck, Package, Map, CheckCircle2 } from 'lucide-react';
+import { Home, Briefcase, FileCheck, Package, Map, CheckCircle2 } from 'lucide-react';
 import type { WorkflowStep } from '@/types/customerPortal';
 
 interface CustomerSidebarProps {
@@ -6,6 +6,7 @@ interface CustomerSidebarProps {
     onStepChange: (step: WorkflowStep) => void;
     customerName?: string;
     customerAvatar?: string;
+    hasSelectedJob?: boolean; // Whether a job is currently selected
 }
 
 export default function CustomerSidebar({
@@ -13,14 +14,24 @@ export default function CustomerSidebar({
     onStepChange,
     customerName = 'Sarah Jenkins',
     customerAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100',
+    hasSelectedJob = false,
 }: CustomerSidebarProps) {
-    const steps: Array<{ id: WorkflowStep; label: string; icon: React.ReactNode }> = [
-        { id: 'overview', label: 'Job Overview', icon: <LayoutDashboard className="w-5 h-5" /> },
+    // Always show Job Management
+    const jobManagementStep = { id: 'job-management' as WorkflowStep, label: 'Job Management', icon: <Briefcase className="w-5 h-5" /> };
+    
+    // Only show workflow steps when a job is selected
+    const workflowSteps: Array<{ id: WorkflowStep; label: string; icon: React.ReactNode }> = [
+        { id: 'overview', label: 'Job Overview', icon: <Briefcase className="w-5 h-5" /> },
         { id: 'quote', label: 'Quote Approval', icon: <FileCheck className="w-5 h-5" /> },
         { id: 'materials', label: 'Material Sourcing', icon: <Package className="w-5 h-5" /> },
         { id: 'progress', label: 'Live Tracking', icon: <Map className="w-5 h-5" /> },
         { id: 'completion', label: 'Final Review', icon: <CheckCircle2 className="w-5 h-5" /> },
     ];
+
+    // Combine steps: always show Job Management, show workflow steps only if job is selected
+    const steps = hasSelectedJob 
+        ? [jobManagementStep, ...workflowSteps]
+        : [jobManagementStep];
 
     return (
         <aside className="w-20 lg:w-72 border-r border-white/5 flex flex-col bg-slate-950 z-20 shrink-0">
@@ -35,9 +46,16 @@ export default function CustomerSidebar({
 
             {/* Workflow Steps Navigation */}
             <nav className="flex-1 px-4 py-8 space-y-2">
-                <div className="hidden lg:block px-4 mb-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-                    Renovation Workflow
-                </div>
+                {hasSelectedJob && (
+                    <div className="hidden lg:block px-4 mb-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+                        Renovation Workflow
+                    </div>
+                )}
+                {!hasSelectedJob && (
+                    <div className="hidden lg:block px-4 mb-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+                        Dashboard
+                    </div>
+                )}
 
                 {steps.map((step) => {
                     const isActive = currentStep === step.id;
