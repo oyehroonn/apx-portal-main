@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import '@/styles/customerPortal.css';
 import {
   ArrowRight,
@@ -21,8 +22,11 @@ import {
 type RoleChoice = 'customer' | 'contractor';
 
 export default function ContractorJobFlowDemo() {
+  const location = useLocation();
+  const autoView = useMemo(() => new URLSearchParams(location.search).get('auto') === '1', [location.search]);
+
   const [currentRole, setCurrentRole] = useState<RoleChoice>('contractor');
-  const [view, setView] = useState<'login' | 'customer' | 'contractor'>('login');
+  const [view, setView] = useState<'login' | 'customer' | 'contractor'>(autoView ? 'contractor' : 'login');
   const [acknowledged, setAcknowledged] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 

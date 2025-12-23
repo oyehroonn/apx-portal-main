@@ -73,7 +73,7 @@ export default function Login() {
             await login(demoUser.email);
             // For contractor demo logins, send directly into the new job flow experience
             if (demoUser.role === 'contractor') {
-                navigate('/contractor/job-flow-demo');
+                navigate('/contractor/job-flow-demo?auto=1');
             } else {
                 navigate(getDashboardRoute(demoUser.role));
             }
