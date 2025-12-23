@@ -50,12 +50,12 @@ export default function AuthLayoutSplit({
       {/* Auth Panel / Right */}
       <div className="w-full lg:w-2/5 relative bg-slate-950 flex items-center justify-center">
         <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-[0.03]" />
-        <div className="w-full max-w-sm p-8 z-10 animate-enter font-[Manrope,sans-serif]">
-          <div className="mb-10">
+        <div className="w-full max-w-sm p-8 z-10 animate-enter font-[Manrope,sans-serif] space-y-6 relative">
+          <div className="sticky top-0 z-20 -mx-8 px-8 py-4 bg-slate-950/95 backdrop-blur-xl border-b border-white/5">
             <h2 className="text-3xl font-semibold text-white tracking-tight mb-2">{title}</h2>
             <p className="text-slate-500 font-light">{subtitle}</p>
           </div>
-          {children}
+          <div className="space-y-6">{children}</div>
         </div>
       </div>
     </div>

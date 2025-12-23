@@ -12,6 +12,7 @@ import JobBoard from './pages/contractor/JobBoard';
 import ActiveJobView from './pages/contractor/ActiveJobView';
 import Wallet from './pages/contractor/Wallet';
 import ContractorJobFlowDemo from './pages/contractor/ContractorJobFlowDemo';
+import ContractorPortal from './pages/contractor/ContractorPortal';
 
 // Field Manager Portal (kept in codebase, routes hidden from UI)
 // import FMDashboard from './pages/fm/FMDashboard';
@@ -57,6 +58,14 @@ function App() {
                 <Route path="/track/:jobId" element={<CustomerTracker />} />
 
                 {/* Contractor Portal */}
+                <Route
+                    path="/contractor/portal"
+                    element={
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <ContractorPortal />
+                        </ProtectedRoute>
+                    }
+                />
                 <Route
                     path="/contractor/dashboard"
                     element={
@@ -263,7 +272,7 @@ function App() {
                             <Navigate to={
                                 currentUser.role === 'admin' ? '/admin/dashboard' :
                                     currentUser.role === 'fm' ? '/fm/dashboard' :
-                                        currentUser.role === 'contractor' ? '/contractor/dashboard' :
+                                        currentUser.role === 'contractor' ? '/contractor/portal' :
                                             currentUser.role === 'investor' ? '/investor/dashboard' :
                                                 currentUser.role === 'customer' ? '/customer/dashboard' :
                                                     '/login'
