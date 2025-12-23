@@ -11,11 +11,12 @@ import ComplianceHub from './pages/contractor/ComplianceHub';
 import JobBoard from './pages/contractor/JobBoard';
 import ActiveJobView from './pages/contractor/ActiveJobView';
 import Wallet from './pages/contractor/Wallet';
+import ContractorJobFlowDemo from './pages/contractor/ContractorJobFlowDemo';
 
-// Field Manager Portal
-import FMDashboard from './pages/fm/FMDashboard';
-import FMJobVisit from './pages/fm/FMJobVisit';
-import ChangeOrderForm from './pages/fm/ChangeOrderForm';
+// Field Manager Portal (kept in codebase, routes hidden from UI)
+// import FMDashboard from './pages/fm/FMDashboard';
+// import FMJobVisit from './pages/fm/FMJobVisit';
+// import ChangeOrderForm from './pages/fm/ChangeOrderForm';
 
 // Admin Portal
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -65,6 +66,14 @@ function App() {
                     }
                 />
                 <Route
+                    path="/contractor/job-flow-demo"
+                    element={
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <ContractorJobFlowDemo />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/contractor/compliance"
                     element={
                         <ProtectedRoute allowedRoles={['contractor']}>
@@ -97,31 +106,7 @@ function App() {
                     }
                 />
 
-                {/* Field Manager Portal */}
-                <Route
-                    path="/fm/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={['fm']}>
-                            <FMDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/fm/visits/:jobId"
-                    element={
-                        <ProtectedRoute allowedRoles={['fm']}>
-                            <FMJobVisit />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/fm/visits/:jobId/change-order"
-                    element={
-                        <ProtectedRoute allowedRoles={['fm']}>
-                            <ChangeOrderForm />
-                        </ProtectedRoute>
-                    }
-                />
+                {/* Field Manager Portal - routes intentionally hidden */}
 
                 {/* Admin Portal */}
                 <Route

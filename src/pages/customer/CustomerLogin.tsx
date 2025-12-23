@@ -22,9 +22,9 @@ export default function CustomerLogin({ onLogin }: CustomerLoginProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex w-full h-full bg-slate-950 transition-transform duration-1000 ease-in-out">
+        <div className="min-h-screen w-full bg-slate-950 flex flex-col lg:flex-row transition-transform duration-700 ease-in-out">
             {/* Abstract Visual */}
-            <div className="hidden lg:flex w-3/5 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-3/5 relative overflow-hidden">
                 <div
                     className="absolute inset-0 bg-cover bg-center opacity-60"
                     style={{
@@ -43,12 +43,11 @@ export default function CustomerLogin({ onLogin }: CustomerLoginProps) {
 
                     <div className="max-w-2xl">
                         <h1 className="text-6xl font-medium text-white leading-[1.1] tracking-tight mb-8">
-                            Redefining <br />
+                            The operating system for <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                                home craftsmanship
+                                modern craftsmanship
                             </span>
-                            <br />
-                            for the modern era.
+                            .
                         </h1>
                         <div className="flex gap-8">
                             <div className="pl-4 border-l border-emerald-500/50">
@@ -74,7 +73,7 @@ export default function CustomerLogin({ onLogin }: CustomerLoginProps) {
 
             {/* Login Form */}
             <div className="w-full lg:w-2/5 flex items-center justify-center relative bg-slate-950">
-                <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
+                <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-[0.03]" />
 
                 <div className="w-full max-w-sm p-8 z-10 animate-enter">
                     <div className="mb-12">

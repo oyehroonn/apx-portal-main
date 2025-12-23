@@ -75,7 +75,8 @@ export function getDashboardRoute(role: User['role']): string {
         case 'admin':
             return '/admin/dashboard';
         case 'fm':
-            return '/fm/dashboard';
+            // FM dashboard is kept in codebase but not exposed in the UI
+            return '/login';
         case 'contractor':
             return '/contractor/dashboard';
         case 'investor':
