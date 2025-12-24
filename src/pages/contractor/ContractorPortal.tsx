@@ -23,7 +23,6 @@ import {
   Download,
   MessageSquare,
   Triangle,
-  FileText,
   Shield,
   Clock,
   CreditCard,
@@ -32,6 +31,8 @@ import {
 import { useContractorJobs } from '@/context/ContractorJobsContext';
 import { useJobs } from '@/context/JobsContext';
 import { useAuth } from '@/context/AuthContext';
+import KycVerificationCard from '@/components/contractor/KycVerificationCard';
+import AgreementsSection from '@/components/contractor/AgreementsSection';
 import '@/styles/customerPortal.css';
 
 type TabId = 'dashboard' | 'compliance' | 'jobs' | 'wallet';
@@ -504,28 +505,15 @@ export default function ContractorPortal() {
 
               {/* Uploads Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Card 1: W9 */}
-                <div className="glass-card p-6 rounded-2xl flex flex-col gap-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-lg bg-slate-800 border border-white/5">
-                        <FileText className="w-5 h-5 text-emerald-400" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-white">W-9 Tax Form</h4>
-                        <p className="text-xs text-slate-500">IRS Verification</p>
-                      </div>
-                    </div>
-                    <CheckCircle className="w-5 h-5 text-emerald-500 fill-emerald-500/20" />
-                  </div>
-                  <div className="mt-2 p-3 rounded-lg bg-slate-950/50 border border-white/5 flex items-center justify-between">
-                    <span className="text-xs text-slate-400">W9_Anderson_2024.pdf</span>
-                    <span className="text-[10px] text-slate-600">3.2 MB</span>
-                  </div>
-                  <button className="mt-auto w-full py-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs text-slate-300 transition-colors">
-                    Re-upload
-                  </button>
-                </div>
+                {/* Card 1: KYC Verification */}
+                <KycVerificationCard
+                  status="not_started"
+                  contractorId={currentUser?.id || (currentUser as any)?.profileID}
+                  onStatusChange={(status) => {
+                    // Handle status change - could update backend here
+                    console.log('KYC status changed to:', status);
+                  }}
+                />
 
                 {/* Card 2: Insurance */}
                 <div className="glass-card p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden">
@@ -565,32 +553,8 @@ export default function ContractorPortal() {
                 </div>
               </div>
 
-              {/* Agreements List */}
-              <div className="glass-panel rounded-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-white/5">
-                  <h3 className="text-sm font-medium text-white">Signed Agreements</h3>
-                </div>
-                <div className="divide-y divide-white/5">
-                  {[
-                    'Independent Contractor Agreement',
-                    'Liability Waiver 2024',
-                    'Apex Platform Payment Terms',
-                  ].map((agreement) => (
-                    <div
-                      key={agreement}
-                      className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.01] transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        <span className="text-sm text-slate-300">{agreement}</span>
-                      </div>
-                      <button className="text-xs text-emerald-400 hover:text-emerald-300">
-                        {agreement.includes('Terms') ? 'View Terms' : 'View PDF'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Agreements Section */}
+              <AgreementsSection contractorId={currentUser?.id || (currentUser as any)?.profileID} />
             </div>
           )}
 

@@ -322,12 +322,204 @@ def assign_job(job_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ==================== KYC VERIFICATION ====================
+
+KYC_CSV = 'kyc_submissions.csv'
+
+def init_kyc_csv():
+    """Initialize KYC CSV file"""
+    if not os.path.exists(KYC_CSV):
+        with open(KYC_CSV, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['contractorId', 'idPhotoUrl', 'selfieUrl', 'status', 'submittedAt', 'verifiedAt'])
+
+def read_kyc():
+    """Read all KYC submissions"""
+    submissions = []
+    if os.path.exists(KYC_CSV):
+        with open(KYC_CSV, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            submissions = list(reader)
+    return submissions
+
+def write_kyc(submissions):
+    """Write KYC submissions to CSV"""
+    with open(KYC_CSV, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=['contractorId', 'idPhotoUrl', 'selfieUrl', 'status', 'submittedAt', 'verifiedAt'])
+        writer.writeheader()
+        writer.writerows(submissions)
+
+@app.route('/api/kyc/submit', methods=['POST'])
+def submit_kyc():
+    """Submit KYC verification photos"""
+    try:
+        # For MVP, we'll store base64 images or file paths
+        # In production, you'd upload to S3/cloud storage
+        data = request.form
+        contractor_id = data.get('contractorId', '')
+        
+        # Get uploaded files
+        id_photo = request.files.get('idPhoto')
+        selfie_photo = request.files.get('selfiePhoto')
+        
+        if not id_photo or not selfie_photo:
+            return jsonify({'error': 'Missing required photos'}), 400
+        
+        # Save files (simplified - in production use cloud storage)
+        id_photo_path = f'uploads/kyc/{contractor_id}_id_{datetime.now().timestamp()}.jpg'
+        selfie_photo_path = f'uploads/kyc/{contractor_id}_selfie_{datetime.now().timestamp()}.jpg'
+        
+        os.makedirs('uploads/kyc', exist_ok=True)
+        id_photo.save(id_photo_path)
+        selfie_photo.save(selfie_photo_path)
+        
+        # Update or create KYC record
+        submissions = read_kyc()
+        existing = next((s for s in submissions if s['contractorId'] == contractor_id), None)
+        
+        if existing:
+            existing['idPhotoUrl'] = id_photo_path
+            existing['selfieUrl'] = selfie_photo_path
+            existing['status'] = 'pending'
+            existing['submittedAt'] = datetime.now().isoformat()
+        else:
+            submissions.append({
+                'contractorId': contractor_id,
+                'idPhotoUrl': id_photo_path,
+                'selfieUrl': selfie_photo_path,
+                'status': 'pending',
+                'submittedAt': datetime.now().isoformat(),
+                'verifiedAt': ''
+            })
+        
+        write_kyc(submissions)
+        
+        return jsonify({
+            'message': 'KYC submission received',
+            'status': 'pending'
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/kyc/status', methods=['GET'])
+def get_kyc_status():
+    """Get KYC status for a contractor"""
+    try:
+        contractor_id = request.args.get('contractorId')
+        if not contractor_id:
+            return jsonify({'error': 'Missing contractorId'}), 400
+        
+        submissions = read_kyc()
+        submission = next((s for s in submissions if s['contractorId'] == contractor_id), None)
+        
+        if not submission:
+            return jsonify({'status': 'not_started'}), 200
+        
+        return jsonify({
+            'status': submission['status'],
+            'submittedAt': submission.get('submittedAt', ''),
+            'verifiedAt': submission.get('verifiedAt', '')
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ==================== AGREEMENTS ====================
+
+AGREEMENTS_CSV = 'agreements_signed.csv'
+
+def init_agreements_csv():
+    """Initialize agreements CSV file"""
+    if not os.path.exists(AGREEMENTS_CSV):
+        with open(AGREEMENTS_CSV, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['contractorId', 'agreementId', 'version', 'signedName', 'signedAt'])
+
+def read_agreements():
+    """Read all signed agreements"""
+    signed = []
+    if os.path.exists(AGREEMENTS_CSV):
+        with open(AGREEMENTS_CSV, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            signed = list(reader)
+    return signed
+
+def write_agreements(signed):
+    """Write signed agreements to CSV"""
+    with open(AGREEMENTS_CSV, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=['contractorId', 'agreementId', 'version', 'signedName', 'signedAt'])
+        writer.writeheader()
+        writer.writerows(signed)
+
+@app.route('/api/agreements/status', methods=['GET'])
+def get_agreements_status():
+    """Get agreement signing status for a contractor"""
+    try:
+        contractor_id = request.args.get('contractorId')
+        if not contractor_id:
+            return jsonify({'error': 'Missing contractorId'}), 400
+        
+        signed = read_agreements()
+        contractor_agreements = [a for a in signed if a['contractorId'] == contractor_id]
+        
+        return jsonify(contractor_agreements), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/agreements/sign', methods=['POST'])
+def sign_agreement():
+    """Sign an agreement"""
+    try:
+        data = request.json
+        contractor_id = data.get('contractorId')
+        agreement_id = data.get('agreementId')
+        version = data.get('version')
+        signed_name = data.get('signedName')
+        
+        if not all([contractor_id, agreement_id, version, signed_name]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        signed = read_agreements()
+        
+        # Check if already signed
+        existing = next((a for a in signed if a['contractorId'] == contractor_id and a['agreementId'] == agreement_id), None)
+        
+        if existing:
+            existing['version'] = version
+            existing['signedName'] = signed_name
+            existing['signedAt'] = datetime.now().isoformat()
+        else:
+            signed.append({
+                'contractorId': contractor_id,
+                'agreementId': agreement_id,
+                'version': version,
+                'signedName': signed_name,
+                'signedAt': datetime.now().isoformat()
+            })
+        
+        write_agreements(signed)
+        
+        return jsonify({
+            'message': 'Agreement signed successfully',
+            'agreementId': agreement_id,
+            'signedAt': datetime.now().isoformat()
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ==================== HEALTH CHECK ====================
 
 @app.route('/api/health', methods=['GET'])
 def health():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'message': 'API is running'}), 200
+
+# Initialize KYC and Agreements CSV files (after all function definitions)
+init_kyc_csv()
+init_agreements_csv()
 
 if __name__ == '__main__':
     # Seed demo data on first run
