@@ -26,14 +26,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = async (email: string, password?: string) => {
-        // Try API login first if password is provided
-        if (password) {
+        // Skip API calls for demo logins (password === 'demo')
+        const isDemoLogin = password === 'demo';
+        
+        // Try API login first if password is provided and not demo
+        if (password && !isDemoLogin) {
             try {
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 seconds
+                
                 const response = await fetch(`${API_BASE_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
+                    signal: controller.signal,
                 });
+
+                clearTimeout(timeoutId);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -51,27 +61,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setCurrentUser(user);
                     sessionStorage.setItem('currentUser', JSON.stringify(user));
                     return;
+                } else {
+                    // API returned error, fall through to mock data
+                    console.warn('API login failed with status:', response.status);
                 }
-            } catch (error) {
-                console.error('API login failed, falling back to mock data:', error);
+            } catch (error: any) {
+                // Only log if it's not an abort (timeout)
+                if (error.name !== 'AbortError') {
+                    console.error('API login failed, falling back to mock data:', error);
+                }
+                // Fall through to mock data
             }
         }
         
         // Fallback to mock data for demo users
         const user = getUserByEmail(email);
         if (user) {
-            // Try to get profileID from API if available
-            try {
-                const response = await fetch(`${API_BASE_URL}/profiles`);
-                if (response.ok) {
-                    const profiles = await response.json();
-                    const profile = profiles.find((p: any) => p.email === email);
-                    if (profile) {
-                        user.profileID = profile.profileID;
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch profileID:', error);
+            // Skip profileID fetch for demo logins to speed up
+            if (!isDemoLogin) {
+                // Try to get profileID from API if available (non-blocking, fire and forget)
+                fetch(`${API_BASE_URL}/profiles`)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        return null;
+                    })
+                    .then(profiles => {
+                        if (profiles) {
+                            const profile = profiles.find((p: any) => p.email === email);
+                            if (profile && user) {
+                                user.profileID = profile.profileID;
+                                setCurrentUser(user);
+                                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        // Silently fail - profileID is optional
+                    });
             }
             
             setCurrentUser(user);

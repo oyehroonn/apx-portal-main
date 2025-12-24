@@ -27,7 +27,7 @@ const CTA_LABELS: Record<UserRole, string> = {
 
 export default function Login() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, currentUser } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -48,18 +48,34 @@ export default function Login() {
         setLoading(true);
 
         try {
-            await login(email, password);
-            const user = users.find((u) => u.email === email);
+            // If no email provided, show error
+            if (!email.trim()) {
+                setError('Please enter your email address.');
+                setLoading(false);
+                return;
+            }
+
+            await login(email, password || undefined);
+            
+            // Read user from sessionStorage (set by login function) - no delay needed
+            const storedUserStr = sessionStorage.getItem('currentUser');
+            const user = storedUserStr ? JSON.parse(storedUserStr) : users.find((u) => u.email === email);
+            
             if (user) {
                 // Ensure role toggle reflects actual logged-in role
                 setSelectedRole(user.role);
-                navigate(getDashboardRoute(user.role));
+                // Navigate immediately
+                const route = getDashboardRoute(user.role);
+                navigate(route);
+                // Reset loading state after navigation
+                setLoading(false);
             } else {
                 setError('User not found. Please select a demo user or enter a valid email.');
+                setLoading(false);
             }
         } catch (err: any) {
-            setError(err.message || 'User not found. Please select a demo user or enter a valid email.');
-        } finally {
+            console.error('Login error:', err);
+            setError(err.message || 'Login failed. Please try again or use a demo login.');
             setLoading(false);
         }
     };
@@ -68,17 +84,32 @@ export default function Login() {
         setEmail(demoUser.email);
         setPassword('demo');
         setSelectedRole(demoUser.role);
+        setError('');
+        setLoading(true);
 
         try {
-            await login(demoUser.email);
-            // For contractor demo logins, send directly to the main contractor portal
-            if (demoUser.role === 'contractor') {
-                navigate('/contractor/portal');
+            await login(demoUser.email, 'demo');
+            
+            // Read user from sessionStorage (set by login function) - no delay needed for demo
+            const storedUserStr = sessionStorage.getItem('currentUser');
+            const user = storedUserStr ? JSON.parse(storedUserStr) : demoUser;
+            
+            if (user) {
+                // For contractor demo logins, send directly to the main contractor portal
+                if (user.role === 'contractor') {
+                    navigate('/contractor/portal');
+                } else {
+                    navigate(getDashboardRoute(user.role));
+                }
+                setLoading(false);
             } else {
-                navigate(getDashboardRoute(demoUser.role));
+                setError('Error logging in');
+                setLoading(false);
             }
-        } catch (err) {
-            setError('Error logging in');
+        } catch (err: any) {
+            console.error('Demo login error:', err);
+            setError(err.message || 'Error logging in. Please try again.');
+            setLoading(false);
         }
     };
 

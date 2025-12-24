@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <AuthProvider>
                     <JobsProvider>
                         <ContractorJobsProvider>
-                            <App />
+                    <App />
                         </ContractorJobsProvider>
                     </JobsProvider>
                 </AuthProvider>

@@ -1,4 +1,6 @@
-import { Home, Briefcase, FileCheck, Package, Map, CheckCircle2 } from 'lucide-react';
+import { Home, Briefcase, FileCheck, Package, Map, CheckCircle2, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import type { WorkflowStep } from '@/types/customerPortal';
 
 interface CustomerSidebarProps {
@@ -16,6 +18,8 @@ export default function CustomerSidebar({
     customerAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100',
     hasSelectedJob = false,
 }: CustomerSidebarProps) {
+    const navigate = useNavigate();
+    const { logout } = useAuth();
     // Always show Job Management
     const jobManagementStep = { id: 'job-management' as WorkflowStep, label: 'Job Management', icon: <Briefcase className="w-5 h-5" /> };
     
@@ -79,7 +83,7 @@ export default function CustomerSidebar({
                 })}
             </nav>
 
-            <div className="p-6 border-t border-white/5">
+            <div className="p-6 border-t border-white/5 space-y-2">
                 <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition-colors">
                     <img
                         src={customerAvatar}
@@ -90,6 +94,16 @@ export default function CustomerSidebar({
                         <div className="text-sm font-medium text-white">{customerName}</div>
                         <div className="text-xs text-slate-500">Property Owner</div>
                     </div>
+                </button>
+                <button
+                    onClick={() => {
+                        logout();
+                        navigate('/login');
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/30 transition-colors group"
+                >
+                    <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+                    <span className="text-xs font-medium text-slate-400 group-hover:text-rose-400 transition-colors hidden lg:block">Logout</span>
                 </button>
             </div>
         </aside>

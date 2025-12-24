@@ -35,7 +35,7 @@ interface JobsContextType {
   createJob: (job: Omit<CustomerJob, 'id' | 'createdAt' | 'status'>) => Promise<CustomerJob>;
   updateJob: (jobId: string, updates: Partial<CustomerJob>) => Promise<void>;
   getJobById: (jobId: string) => CustomerJob | undefined;
-  getJobsByCustomer: (customerEmail: string, profileID?: string) => CustomerJob[];
+  getJobsByCustomer: (customerEmail: string) => CustomerJob[];
   getAvailableJobs: (trade?: string) => CustomerJob[];
   getJobsByContractor: (contractorId: string | number) => CustomerJob[];
   assignContractor: (jobId: string, contractorId: string | number) => Promise<void>;
@@ -197,14 +197,8 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
 
   const getJobById = (jobId: string) => jobs.find(j => j.id === jobId);
 
-  const getJobsByCustomer = (customerEmail: string, profileID?: string) => {
-    if (profileID) {
-      // Filter by profileID if available (more reliable)
-      return jobs.filter(j => j.profileID === profileID);
-    }
-    // Fallback to email filtering
-    return jobs.filter(j => j.customerEmail === customerEmail);
-  };
+  const getJobsByCustomer = (customerEmail: string) => 
+    jobs.filter(j => j.customerEmail === customerEmail);
 
   const getAvailableJobs = (trade?: string) => 
     jobs.filter(j => 

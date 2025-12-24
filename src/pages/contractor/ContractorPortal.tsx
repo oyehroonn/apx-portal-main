@@ -27,6 +27,7 @@ import {
   Clock,
   CreditCard,
   X,
+  LogOut,
 } from 'lucide-react';
 import { useContractorJobs } from '@/context/ContractorJobsContext';
 import { useJobs } from '@/context/JobsContext';
@@ -39,11 +40,12 @@ type TabId = 'dashboard' | 'compliance' | 'jobs' | 'wallet';
 
 export default function ContractorPortal() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const { completedJobs, completedJobsCount } = useContractorJobs();
   const { getAvailableJobs, getJobsByContractor, assignContractor, refreshJobs } = useJobs();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [showCompletedJobs, setShowCompletedJobs] = useState(false);
+  const [showProjects, setShowProjects] = useState(false);
 
   // Refresh jobs when component mounts or when switching tabs
   React.useEffect(() => {
@@ -55,12 +57,22 @@ export default function ContractorPortal() {
     refreshJobs(); // Refresh jobs when switching tabs
   };
 
-  // Get jobs - using jobs array directly ensures reactivity to API changes
-  const availableJobs = getAvailableJobs(currentUser?.trade);
+  // Memoize expensive computations
+  const contractorId = React.useMemo(() => 
+    (currentUser as any)?.profileID || (currentUser as any)?.id || currentUser?.id,
+    [currentUser]
+  );
+  
+  const availableJobs = React.useMemo(() => 
+    getAvailableJobs(currentUser?.trade),
+    [currentUser?.trade, getAvailableJobs]
+  );
+  
   // Active Projects only shows jobs that have been started (status = 'InProgress')
-  // Use profileID or id for contractor lookup
-  const contractorId = (currentUser as any)?.profileID || (currentUser as any)?.id || currentUser?.id;
-  const activeJobs = contractorId ? getJobsByContractor(contractorId).filter(j => j.status === 'InProgress') : [];
+  const activeJobs = React.useMemo(() => 
+    contractorId ? getJobsByContractor(contractorId).filter(j => j.status === 'InProgress') : [],
+    [contractorId, getJobsByContractor]
+  );
 
   const handleAcceptJob = async (jobId: string) => {
     const contractorId = (currentUser as any)?.profileID || (currentUser as any)?.id || currentUser?.id;
@@ -165,24 +177,38 @@ export default function ContractorPortal() {
           </div>
 
           <div className="px-4 py-4">
-            <div className="border-t border-white/5 pt-4 space-y-1">
-              <div className="px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
-                Projects
-              </div>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_-2px_rgba(16,185,129,0.3)]" />
-                Highland Kitchen
+            <div className="border-t border-white/5 pt-4">
+              <button
+                onClick={() => setShowProjects(!showProjects)}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 hover:text-slate-400 transition-colors"
+              >
+                <span>Projects</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${showProjects ? 'rotate-180' : ''}`} />
               </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                Venice Bath Remodel
-              </button>
+              {showProjects && (
+                <div className="space-y-1">
+                  {completedJobs.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-slate-500">No completed projects</div>
+                  ) : (
+                    completedJobs.map((job) => (
+                      <button
+                        key={job.id}
+                        onClick={() => navigate(`/contractor/project/${job.id}`)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs text-left"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_-2px_rgba(16,185,129,0.3)]" />
+                        {job.jobName}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* User Profile */}
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-white/5 space-y-2">
           <button className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-white/5 transition-colors">
             <img
               src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
@@ -190,12 +216,22 @@ export default function ContractorPortal() {
               className="w-9 h-9 rounded-full border border-white/10"
             />
             <div className="text-left">
-              <div className="text-xs font-medium text-white">Cory Anderson</div>
+              <div className="text-xs font-medium text-white">{currentUser?.name || 'Cory Anderson'}</div>
               <div className="text-[10px] text-emerald-400 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Available
               </div>
             </div>
             <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />
+          </button>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/30 transition-colors group"
+          >
+            <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+            <span className="text-xs font-medium text-slate-400 group-hover:text-rose-400 transition-colors">Logout</span>
           </button>
         </div>
       </aside>
@@ -872,7 +908,13 @@ export default function ContractorPortal() {
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3 md:flex-col md:justify-center">
-                          <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-xs hover:bg-white/10 transition-colors">
+                          <button
+                            onClick={() => {
+                              setShowCompletedJobs(false);
+                              navigate(`/contractor/project/${job.id}`);
+                            }}
+                            className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-xs hover:bg-white/10 transition-colors"
+                          >
                             View Details
                           </button>
                         </div>

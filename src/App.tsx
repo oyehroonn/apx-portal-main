@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -5,47 +6,53 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Pages - will be created next
 import Login from './pages/Login';
 
-// Contractor Portal
-import ContractorDashboard from './pages/contractor/ContractorDashboard';
-import ComplianceHub from './pages/contractor/ComplianceHub';
-import JobBoard from './pages/contractor/JobBoard';
-import ActiveJobView from './pages/contractor/ActiveJobView';
-import Wallet from './pages/contractor/Wallet';
-import ContractorJobFlowDemo from './pages/contractor/ContractorJobFlowDemo';
-import ContractorPortal from './pages/contractor/ContractorPortal';
-
-// Field Manager Portal (kept in codebase, routes hidden from UI)
-// import FMDashboard from './pages/fm/FMDashboard';
-// import FMJobVisit from './pages/fm/FMJobVisit';
-// import ChangeOrderForm from './pages/fm/ChangeOrderForm';
+// Lazy load portal components for faster initial load
+const ContractorPortal = lazy(() => import('./pages/contractor/ContractorPortal'));
+const ContractorDashboard = lazy(() => import('./pages/contractor/ContractorDashboard'));
+const ComplianceHub = lazy(() => import('./pages/contractor/ComplianceHub'));
+const JobBoard = lazy(() => import('./pages/contractor/JobBoard'));
+const ActiveJobView = lazy(() => import('./pages/contractor/ActiveJobView'));
+const Wallet = lazy(() => import('./pages/contractor/Wallet'));
+const ContractorJobFlowDemo = lazy(() => import('./pages/contractor/ContractorJobFlowDemo'));
+const JobSummaryView = lazy(() => import('./pages/contractor/JobSummaryView'));
 
 // Admin Portal
-import AdminDashboard from './pages/admin/AdminDashboard';
-import LegalCompliance from './pages/admin/LegalCompliance';
-import DisputeList from './pages/admin/DisputeList';
-import DisputeDetail from './pages/admin/DisputeDetail';
-import Ledger from './pages/admin/Ledger';
-import PayoutApproval from './pages/admin/PayoutApproval';
-import InvestorAccounting from './pages/admin/InvestorAccounting';
-import AdminJobList from './pages/admin/AdminJobList';
-import AdminMeetings from './pages/admin/AdminMeetings';
-import AdminLeads from './pages/admin/AdminLeads';
+const AdminPortal = lazy(() => import('./pages/admin/AdminPortal'));
+const LegalCompliance = lazy(() => import('./pages/admin/LegalCompliance'));
+const DisputeList = lazy(() => import('./pages/admin/DisputeList'));
+const DisputeDetail = lazy(() => import('./pages/admin/DisputeDetail'));
+const Ledger = lazy(() => import('./pages/admin/Ledger'));
+const PayoutApproval = lazy(() => import('./pages/admin/PayoutApproval'));
+const InvestorAccounting = lazy(() => import('./pages/admin/InvestorAccounting'));
+const AdminJobList = lazy(() => import('./pages/admin/AdminJobList'));
+const AdminMeetings = lazy(() => import('./pages/admin/AdminMeetings'));
+const AdminLeads = lazy(() => import('./pages/admin/AdminLeads'));
 
 // Investor Portal
-import InvestorDashboard from './pages/investor/InvestorDashboard';
-import InvestorReports from './pages/investor/InvestorReports';
-import PropertyDetailView from './pages/investor/PropertyDetailView';
+const InvestorDashboard = lazy(() => import('./pages/investor/InvestorDashboard'));
+const InvestorReports = lazy(() => import('./pages/investor/InvestorReports'));
+const PropertyDetailView = lazy(() => import('./pages/investor/PropertyDetailView'));
 
 // Customer Portal (Magic Links)
-import QuoteApproval from './pages/customer/QuoteApproval';
-import ReportIssue from './pages/customer/ReportIssue';
-import MaterialPurchaseStatus from './pages/customer/MaterialPurchaseStatus';
-import MaterialDeliveryConfirmation from './pages/customer/MaterialDeliveryConfirmation';
-import CustomerTracker from './pages/customer/CustomerTracker';
-import CustomerCredentials from './pages/customer/CustomerCredentials';
-import CustomerJobView from './pages/customer/CustomerJobView';
-import CustomerPortalLayout from './layouts/CustomerPortalLayout';
-import TestAPI from './pages/TestAPI';
+const QuoteApproval = lazy(() => import('./pages/customer/QuoteApproval'));
+const ReportIssue = lazy(() => import('./pages/customer/ReportIssue'));
+const MaterialPurchaseStatus = lazy(() => import('./pages/customer/MaterialPurchaseStatus'));
+const MaterialDeliveryConfirmation = lazy(() => import('./pages/customer/MaterialDeliveryConfirmation'));
+const CustomerTracker = lazy(() => import('./pages/customer/CustomerTracker'));
+const CustomerCredentials = lazy(() => import('./pages/customer/CustomerCredentials'));
+const CustomerJobView = lazy(() => import('./pages/customer/CustomerJobView'));
+const CustomerPortalLayout = lazy(() => import('./layouts/CustomerPortalLayout'));
+const TestAPI = lazy(() => import('./pages/TestAPI'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+    <div className="min-h-screen flex items-center justify-center bg-[#05060A]">
+        <div className="text-center">
+            <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400 text-sm">Loading...</p>
+        </div>
+    </div>
+);
 
 function App() {
     const { isAuthenticated, currentUser } = useAuth();
@@ -55,64 +62,96 @@ function App() {
             <Routes>
                 {/* Public Routes */}
                 <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
-                <Route path="/test-api" element={<TestAPI />} />
-                <Route path="/track/:jobId" element={<CustomerTracker />} />
+                <Route path="/test-api" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                        <TestAPI />
+                    </Suspense>
+                } />
+                <Route path="/track/:jobId" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                        <CustomerTracker />
+                    </Suspense>
+                } />
 
                 {/* Contractor Portal */}
                 <Route
                     path="/contractor/portal"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <ContractorPortal />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <ContractorPortal />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/contractor/dashboard"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <ContractorDashboard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <ContractorDashboard />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/contractor/job-flow-demo"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <ContractorJobFlowDemo />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <ContractorJobFlowDemo />
+                            </ProtectedRoute>
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/contractor/project/:jobId"
+                    element={
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <JobSummaryView />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/contractor/compliance"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <ComplianceHub />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <ComplianceHub />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/contractor/jobs"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <JobBoard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <JobBoard />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/contractor/jobs/:jobId"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <ActiveJobView />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <ActiveJobView />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/contractor/wallet"
                     element={
-                        <ProtectedRoute allowedRoles={['contractor']}>
-                            <Wallet />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <Wallet />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
 
@@ -122,81 +161,101 @@ function App() {
                 <Route
                     path="/admin/dashboard"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <AdminDashboard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <AdminPortal />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/legal-compliance"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <LegalCompliance />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <LegalCompliance />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/disputes"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <DisputeList />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <DisputeList />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/disputes/:disputeId"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <DisputeDetail />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <DisputeDetail />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/ledger"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <Ledger />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <Ledger />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/payouts"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <PayoutApproval />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <PayoutApproval />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/investors"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <InvestorAccounting />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <InvestorAccounting />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/jobs"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <AdminJobList />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <AdminJobList />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/meetings"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <AdminMeetings />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <AdminMeetings />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/admin/leads"
                     element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <AdminLeads />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <AdminLeads />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
 
@@ -204,49 +263,61 @@ function App() {
                 <Route
                     path="/investor/dashboard"
                     element={
-                        <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorDashboard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['investor']}>
+                                <InvestorDashboard />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/investor/orders"
                     element={
-                        <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorDashboard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['investor']}>
+                                <InvestorDashboard />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/investor/properties"
                     element={
-                        <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorDashboard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['investor']}>
+                                <InvestorDashboard />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/investor/leads"
                     element={
-                        <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorDashboard />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['investor']}>
+                                <InvestorDashboard />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/investor/reports"
                     element={
-                        <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorReports />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['investor']}>
+                                <InvestorReports />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
                 <Route
                     path="/investor/property/:address"
                     element={
-                        <ProtectedRoute allowedRoles={['investor']}>
-                            <PropertyDetailView />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['investor']}>
+                                <PropertyDetailView />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
 
@@ -254,24 +325,50 @@ function App() {
                 <Route
                     path="/customer/dashboard"
                     element={
-                        <ProtectedRoute allowedRoles={['customer']}>
-                            <CustomerJobView />
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ProtectedRoute allowedRoles={['customer']}>
+                                <CustomerJobView />
+                            </ProtectedRoute>
+                        </Suspense>
                     }
                 />
 
                 {/* Customer Portal - Other pages (use CustomerPortalLayout) */}
-                <Route element={<ProtectedRoute allowedRoles={['customer']}>
-                    <CustomerPortalLayout />
-                </ProtectedRoute>}>
-                    <Route path="/materials/:token" element={<MaterialPurchaseStatus />} />
-                    <Route path="/materials/:token/delivery" element={<MaterialDeliveryConfirmation />} />
-                    <Route path="/issue/:token" element={<ReportIssue />} />
+                <Route element={
+                    <Suspense fallback={<LoadingFallback />}>
+                        <ProtectedRoute allowedRoles={['customer']}>
+                            <CustomerPortalLayout />
+                        </ProtectedRoute>
+                    </Suspense>
+                }>
+                    <Route path="/materials/:token" element={
+                        <Suspense fallback={<LoadingFallback />}>
+                            <MaterialPurchaseStatus />
+                        </Suspense>
+                    } />
+                    <Route path="/materials/:token/delivery" element={
+                        <Suspense fallback={<LoadingFallback />}>
+                            <MaterialDeliveryConfirmation />
+                        </Suspense>
+                    } />
+                    <Route path="/issue/:token" element={
+                        <Suspense fallback={<LoadingFallback />}>
+                            <ReportIssue />
+                        </Suspense>
+                    } />
                 </Route>
 
                 {/* Public Magic Links */}
-                <Route path="/quote/:token" element={<QuoteApproval />} />
-                <Route path="/customer/credentials" element={<CustomerCredentials />} />
+                <Route path="/quote/:token" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                        <QuoteApproval />
+                    </Suspense>
+                } />
+                <Route path="/customer/credentials" element={
+                    <Suspense fallback={<LoadingFallback />}>
+                        <CustomerCredentials />
+                    </Suspense>
+                } />
 
                 {/* Redirect root to login or dashboard based on auth */}
                 <Route
