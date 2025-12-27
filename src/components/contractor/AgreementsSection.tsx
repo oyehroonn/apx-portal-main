@@ -32,7 +32,7 @@ export default function AgreementsSection({ contractorId }: AgreementsSectionPro
       
       // Try API first
       try {
-        const response = await fetch(`http://192.168.100.58:5001/api/agreements/status?contractorId=${contractorId}`);
+        const response = await fetch(`http://127.0.0.1:5001/api/agreements/status?contractorId=${contractorId}`);
         if (response.ok) {
           const data = await response.json();
           const statusMap: Record<string, AgreementRecord> = {};
@@ -111,7 +111,7 @@ export default function AgreementsSection({ contractorId }: AgreementsSectionPro
 
     // Try API first
     try {
-      const response = await fetch('http://192.168.100.58:5001/api/agreements/sign', {
+      const response = await fetch('http://127.0.0.1:5001/api/agreements/sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

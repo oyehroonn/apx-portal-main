@@ -1,11 +1,19 @@
-import { ShieldCheck, CalendarClock } from 'lucide-react';
+import { useState } from 'react';
+import { ShieldCheck, CalendarClock, RotateCcw } from 'lucide-react';
 import type { CustomerJob } from '@/types/customerPortal';
+import ViewProfileModal from './ViewProfileModal';
+import RebookModal from './RebookModal';
 
 interface JobOverviewViewProps {
     job: CustomerJob;
+    onJobCreated?: (jobId: string) => void;
 }
 
-export default function JobOverviewView({ job }: JobOverviewViewProps) {
+export default function JobOverviewView({ job, onJobCreated }: JobOverviewViewProps) {
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showRebookModal, setShowRebookModal] = useState(false);
+    const isCompleted = job.status === 'completed';
+    const hasContractor = job.contractor && job.contractor.id !== '1'; // Check if contractor is assigned
     return (
         <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-enter">
             {/* Hero Status Section */}
@@ -14,36 +22,45 @@ export default function JobOverviewView({ job }: JobOverviewViewProps) {
                 <div className="absolute inset-0 map-bg transition-transform duration-1000 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
 
-                {/* Floating Contractor Card */}
-                <div className="absolute top-8 right-8 w-80 glass-panel rounded-2xl p-5 transform transition-transform hover:-translate-y-1">
-                    <div className="flex items-start gap-4 mb-4">
-                        <div className="relative">
-                            <img
-                                src={job.contractor.avatar}
-                                alt={job.contractor.name}
-                                className="w-14 h-14 rounded-xl object-cover border border-white/10"
-                            />
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-800 rounded-full" />
-                        </div>
-                        <div>
-                            <h3 className="text-white font-semibold">{job.contractor.name}</h3>
-                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                                {job.contractor.role}
-                            </p>
-                            <div className="flex items-center gap-1 text-amber-400 text-xs font-medium">
-                                <span>★</span> {job.contractor.rating} ({job.contractor.jobsCount} Jobs)
+                {/* Floating Contractor Card - Only show for completed jobs with contractor */}
+                {isCompleted && hasContractor && (
+                    <div className="absolute top-8 right-8 w-80 glass-panel rounded-2xl p-5 transform transition-transform hover:-translate-y-1">
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="relative">
+                                <img
+                                    src={job.contractor.avatar}
+                                    alt={job.contractor.name}
+                                    className="w-14 h-14 rounded-xl object-cover border border-white/10"
+                                />
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-800 rounded-full" />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-semibold">{job.contractor.name}</h3>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                                    {job.contractor.role}
+                                </p>
+                                <div className="flex items-center gap-1 text-amber-400 text-xs font-medium">
+                                    <span>★</span> {job.contractor.rating} ({job.contractor.jobsCount} Jobs)
+                                </div>
                             </div>
                         </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowProfileModal(true)}
+                                className="flex-1 py-2 rounded-lg bg-white/5 text-xs font-medium text-white hover:bg-white/10 transition-colors border border-white/5"
+                            >
+                                View Profile
+                            </button>
+                            <button
+                                onClick={() => setShowRebookModal(true)}
+                                className="flex-1 py-2 rounded-lg bg-emerald-500 text-xs font-medium text-white hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-1.5"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                Rebook
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="flex-1 py-2 rounded-lg bg-white/5 text-xs font-medium text-white hover:bg-white/10 transition-colors border border-white/5">
-                            View Profile
-                        </button>
-                        <button className="flex-1 py-2 rounded-lg bg-emerald-500 text-xs font-medium text-white hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-900/20">
-                            Message
-                        </button>
-                    </div>
-                </div>
+                )}
 
                 {/* Left Rail: Timeline Progress */}
                 <div className="absolute bottom-8 left-8 flex items-end gap-12">
@@ -114,6 +131,27 @@ export default function JobOverviewView({ job }: JobOverviewViewProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            {showProfileModal && job.contractor && (
+                <ViewProfileModal
+                    contractor={job.contractor}
+                    onClose={() => setShowProfileModal(false)}
+                />
+            )}
+
+            {showRebookModal && job.contractor && (
+                <RebookModal
+                    contractor={job.contractor}
+                    onClose={() => setShowRebookModal(false)}
+                    onJobCreated={(jobId) => {
+                        setShowRebookModal(false);
+                        if (onJobCreated) {
+                            onJobCreated(jobId);
+                        }
+                    }}
+                />
+            )}
         </div>
     );
 }

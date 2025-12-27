@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-const API_BASE_URL = 'http://192.168.100.58:5001/api';
+const API_BASE_URL = 'http://127.0.0.1:5001/api';
 
 export interface CustomerJob {
   id: string;
@@ -32,7 +32,7 @@ interface JobsContextType {
   loading: boolean;
   error: string | null;
   refreshJobs: () => Promise<void>;
-  createJob: (job: Omit<CustomerJob, 'id' | 'createdAt' | 'status'>) => Promise<CustomerJob>;
+  createJob: (job: Omit<CustomerJob, 'id' | 'createdAt' | 'status'> & { assignedContractorId?: string | number }) => Promise<CustomerJob>;
   updateJob: (jobId: string, updates: Partial<CustomerJob>) => Promise<void>;
   getJobById: (jobId: string) => CustomerJob | undefined;
   getJobsByCustomer: (customerEmail: string) => CustomerJob[];
@@ -126,7 +126,7 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
     refreshJobs();
   }, [refreshJobs]);
 
-  const createJob = async (jobData: Omit<CustomerJob, 'id' | 'createdAt' | 'status'>): Promise<CustomerJob> => {
+  const createJob = async (jobData: Omit<CustomerJob, 'id' | 'createdAt' | 'status'> & { assignedContractorId?: string | number }): Promise<CustomerJob> => {
     try {
       const apiPayload = {
         profileID: jobData.profileID || '',
@@ -140,6 +140,7 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
         description: jobData.description,
         scheduledTime: jobData.scheduledTime || '',
         squareFootage: jobData.squareFootage || '',
+        assignedContractorId: jobData.assignedContractorId || '',
       };
 
       const response = await fetch(`${API_BASE_URL}/jobs`, {
@@ -156,7 +157,8 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
       const result = await response.json();
       const newJob = convertApiJobToCustomerJob(result.job);
       
-      // Refresh jobs list
+      // Backend already handles contractor assignment if assignedContractorId was provided
+      // Refresh jobs list to get the latest state
       await refreshJobs();
       
       return newJob;

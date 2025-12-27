@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '@/types';
 import { getUserByEmail } from '@/data/mockData';
 
-const API_BASE_URL = 'http://192.168.100.58:5001/api';
+const API_BASE_URL = 'http://127.0.0.1:5001/api';
 
 interface AuthContextType {
     currentUser: User | null;

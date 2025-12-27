@@ -70,7 +70,7 @@ export default function Login() {
                 // Reset loading state after navigation
                 setLoading(false);
             } else {
-                setError('User not found. Please select a demo user or enter a valid email.');
+            setError('User not found. Please select a demo user or enter a valid email.');
                 setLoading(false);
             }
         } catch (err: any) {
@@ -99,11 +99,11 @@ export default function Login() {
                 if (user.role === 'contractor') {
                     navigate('/contractor/portal');
                 } else {
-                    navigate(getDashboardRoute(user.role));
-                }
+                navigate(getDashboardRoute(user.role));
+            }
                 setLoading(false);
             } else {
-                setError('Error logging in');
+            setError('Error logging in');
                 setLoading(false);
             }
         } catch (err: any) {
@@ -123,54 +123,54 @@ export default function Login() {
             />
 
             {/* Auth Form */}
-            <form onSubmit={handleLogin} className="space-y-6">
+                    <form onSubmit={handleLogin} className="space-y-6">
                 <GlassInput
                     label="Email Address"
-                    type="email"
-                    value={email}
+                            type="email"
+                            value={email}
                     onChange={(e) => {
                         setEmail(e.target.value);
                         syncRoleWithEmail(e.target.value);
                     }}
                     placeholder="pro@apex.inc"
-                    required
-                />
+                            required
+                        />
 
                 <GlassInput
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                            label="Password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimum 8 characters"
-                />
+                        />
 
-                {error && (
+                        {error && (
                     <div className="text-rose-300 text-xs bg-rose-500/10 border border-rose-400/30 rounded-xl px-3 py-2">
-                        {error}
-                    </div>
-                )}
+                                {error}
+                            </div>
+                        )}
 
                 <PrimaryButton type="submit" loading={loading}>
                     {CTA_LABELS[selectedRole]}
                 </PrimaryButton>
 
-                <button
-                    type="button"
+                        <button
+                            type="button"
                     className="w-full text-[11px] text-slate-500 hover:text-slate-300 text-left underline-offset-4 hover:underline"
-                    onClick={() => alert('Password reset is mocked in this demo.')}
-                >
+                            onClick={() => alert('Password reset is mocked in this demo.')}
+                        >
                     Forgot password? (Demo only)
-                </button>
-            </form>
+                        </button>
+                    </form>
 
             {/* Customer helper text */}
             <div className="mt-6 text-[11px] text-slate-500 leading-relaxed">
-                Are you a customer?
-                <br />
+                        Are you a customer?
+                        <br />
                 <span className="text-slate-400">
                     Access your portal via the secure link in your quote or invoice email.
-                </span>
-            </div>
+                                    </span>
+                                </div>
 
             {/* Demo logins */}
             <DemoLoginList onSelect={handleDemoUser} />
@@ -180,7 +180,7 @@ export default function Login() {
                 <h4 className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
                     Customer Magic Link Demos
                 </h4>
-                <button
+                            <button
                     type="button"
                     onClick={() => {
                         // Login as customer demo user and navigate to dashboard
@@ -194,26 +194,26 @@ export default function Login() {
                         }
                     }}
                     className="w-full px-4 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/25 text-emerald-200 text-xs font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                    <span>🏠</span> Customer Portal Demo
-                </button>
-                <div className="grid grid-cols-2 gap-3">
-                    <button
+                            >
+                                <span>🏠</span> Customer Portal Demo
+                            </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
                         type="button"
-                        onClick={() => navigate('/track/101')}
+                                    onClick={() => navigate('/track/101')}
                         className="px-3 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-200 text-[11px] font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                        <span>📍</span> Tracker
-                    </button>
-                    <button
+                                >
+                                    <span>📍</span> Tracker
+                                </button>
+                                <button
                         type="button"
-                        onClick={() => navigate('/materials/demo-token-101')}
+                                    onClick={() => navigate('/materials/demo-token-101')}
                         className="px-3 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-200 text-[11px] font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                        <span>📦</span> Materials
-                    </button>
-                </div>
-            </div>
+                                >
+                                    <span>📦</span> Materials
+                                </button>
+                            </div>
+                        </div>
         </AuthLayoutSplit>
     );
 }

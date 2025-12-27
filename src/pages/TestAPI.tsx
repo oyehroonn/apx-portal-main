@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CheckCircle, XCircle, Loader, Send, User, Briefcase, List } from 'lucide-react';
 import '@/styles/customerPortal.css';
 
-const API_BASE_URL = 'http://192.168.100.58:5001/api';
+const API_BASE_URL = 'http://127.0.0.1:5001/api';
 
 interface ApiResponse {
   success: boolean;

@@ -1,10 +1,59 @@
 import type { CustomerJob as JobsContextJob } from '@/context/JobsContext';
-import type { CustomerJob as CustomerPortalJob } from '@/types/customerPortal';
+import type { CustomerJob as CustomerPortalJob, Contractor } from '@/types/customerPortal';
+import { users } from '@/data/mockData';
+
+const API_BASE_URL = 'http://127.0.0.1:5001/api';
+
+/**
+ * Fetches contractor information by ID
+ */
+async function getContractorInfo(contractorId: string | number | undefined): Promise<Contractor | null> {
+  if (!contractorId || contractorId === '1') {
+    return null;
+  }
+
+  try {
+    // Try API first
+    const response = await fetch(`${API_BASE_URL}/profiles/${contractorId}`);
+    if (response.ok) {
+      const profile = await response.json();
+      return {
+        id: profile.profileID || contractorId.toString(),
+        name: profile.email?.split('@')[0] || 'Contractor',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150',
+        rating: 4.9,
+        jobsCount: 128,
+        role: profile.user_role === 'contractor' ? 'Lead Contractor' : 'Contractor',
+      };
+    }
+  } catch (error) {
+    console.error('Failed to fetch contractor from API:', error);
+  }
+
+  // Fallback to mock data
+  const contractor = users.find(u => 
+    (u.id?.toString() === contractorId.toString()) || 
+    (u.profileID?.toString() === contractorId.toString())
+  );
+  
+  if (contractor && contractor.role === 'contractor') {
+    return {
+      id: contractor.profileID || contractor.id?.toString() || contractorId.toString(),
+      name: contractor.name,
+      avatar: contractor.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150',
+      rating: 4.9,
+      jobsCount: 128,
+      role: contractor.trade ? `${contractor.trade.charAt(0).toUpperCase() + contractor.trade.slice(1)} Contractor` : 'Lead Contractor',
+    };
+  }
+
+  return null;
+}
 
 /**
  * Converts a job from JobsContext format to CustomerPortal format
  */
-export function convertJobToCustomerPortal(job: JobsContextJob): CustomerPortalJob {
+export async function convertJobToCustomerPortal(job: JobsContextJob): Promise<CustomerPortalJob> {
   // Parse estimated pay to number
   const estimatedCost = parseFloat(job.estimatedPay.replace(/[^0-9.]/g, '')) || 0;
 
@@ -137,8 +186,8 @@ export function convertJobToCustomerPortal(job: JobsContextJob): CustomerPortalJ
       duration: '3 Weeks',
       completionDate: completionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     },
-    contractor: {
-      id: job.assignedContractorId?.toString() || '1',
+    contractor: await getContractorInfo(job.assignedContractorId) || {
+      id: '1',
       name: 'Contractor',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150',
       rating: 4.9,

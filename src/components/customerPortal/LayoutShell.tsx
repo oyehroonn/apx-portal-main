@@ -34,16 +34,16 @@ export default function LayoutShell({ job: initialJob, customerName, customerAva
                 // Don't allow navigation to workflow steps without a selected job
                 return;
             }
-            setCurrentStep(step);
+        setCurrentStep(step);
         }
     };
 
-    const handleJobSelect = (jobId: string) => {
+    const handleJobSelect = async (jobId: string) => {
         // Get real job data from JobsContext
         const realJob = getJobById(jobId);
         if (realJob) {
-            // Convert to CustomerPortal format
-            const convertedJob = convertJobToCustomerPortal(realJob);
+            // Convert to CustomerPortal format (now async)
+            const convertedJob = await convertJobToCustomerPortal(realJob);
             setSelectedJob(convertedJob);
             setCurrentStep('overview');
         } else {
@@ -71,7 +71,7 @@ export default function LayoutShell({ job: initialJob, customerName, customerAva
                     setCurrentStep('job-management');
                     return <JobManagementView onJobSelect={handleJobSelect} />;
                 }
-                return <JobOverviewView job={selectedJob} />;
+                return <JobOverviewView job={selectedJob} onJobCreated={handleJobSelect} />;
             case 'quote':
                 if (!selectedJob) {
                     setCurrentStep('job-management');

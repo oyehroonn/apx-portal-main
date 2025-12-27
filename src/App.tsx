@@ -88,9 +88,9 @@ function App() {
                     path="/contractor/dashboard"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['contractor']}>
-                                <ContractorDashboard />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <ContractorDashboard />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -118,9 +118,9 @@ function App() {
                     path="/contractor/compliance"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['contractor']}>
-                                <ComplianceHub />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <ComplianceHub />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -128,9 +128,9 @@ function App() {
                     path="/contractor/jobs"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['contractor']}>
-                                <JobBoard />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <JobBoard />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -138,9 +138,9 @@ function App() {
                     path="/contractor/jobs/:jobId"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['contractor']}>
-                                <ActiveJobView />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <ActiveJobView />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -148,9 +148,9 @@ function App() {
                     path="/contractor/wallet"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['contractor']}>
-                                <Wallet />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['contractor']}>
+                            <Wallet />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -162,9 +162,9 @@ function App() {
                     path="/admin/dashboard"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
+                        <ProtectedRoute allowedRoles={['admin']}>
                                 <AdminPortal />
-                            </ProtectedRoute>
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -172,9 +172,9 @@ function App() {
                     path="/admin/legal-compliance"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <LegalCompliance />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <LegalCompliance />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -182,9 +182,9 @@ function App() {
                     path="/admin/disputes"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <DisputeList />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <DisputeList />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -192,9 +192,9 @@ function App() {
                     path="/admin/disputes/:disputeId"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <DisputeDetail />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <DisputeDetail />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -202,9 +202,9 @@ function App() {
                     path="/admin/ledger"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <Ledger />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <Ledger />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -212,9 +212,9 @@ function App() {
                     path="/admin/payouts"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <PayoutApproval />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <PayoutApproval />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -222,9 +222,9 @@ function App() {
                     path="/admin/investors"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <InvestorAccounting />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <InvestorAccounting />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -232,9 +232,9 @@ function App() {
                     path="/admin/jobs"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <AdminJobList />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminJobList />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -242,9 +242,9 @@ function App() {
                     path="/admin/meetings"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <AdminMeetings />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminMeetings />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -252,9 +252,9 @@ function App() {
                     path="/admin/leads"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <AdminLeads />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminLeads />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -264,9 +264,9 @@ function App() {
                     path="/investor/dashboard"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['investor']}>
-                                <InvestorDashboard />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['investor']}>
+                            <InvestorDashboard />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -274,9 +274,9 @@ function App() {
                     path="/investor/orders"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['investor']}>
-                                <InvestorDashboard />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['investor']}>
+                            <InvestorDashboard />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -284,9 +284,9 @@ function App() {
                     path="/investor/properties"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['investor']}>
-                                <InvestorDashboard />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['investor']}>
+                            <InvestorDashboard />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -294,9 +294,9 @@ function App() {
                     path="/investor/leads"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['investor']}>
-                                <InvestorDashboard />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['investor']}>
+                            <InvestorDashboard />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -304,9 +304,9 @@ function App() {
                     path="/investor/reports"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['investor']}>
-                                <InvestorReports />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['investor']}>
+                            <InvestorReports />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -314,9 +314,9 @@ function App() {
                     path="/investor/property/:address"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
-                            <ProtectedRoute allowedRoles={['investor']}>
-                                <PropertyDetailView />
-                            </ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['investor']}>
+                            <PropertyDetailView />
+                        </ProtectedRoute>
                         </Suspense>
                     }
                 />
@@ -337,7 +337,7 @@ function App() {
                 <Route element={
                     <Suspense fallback={<LoadingFallback />}>
                         <ProtectedRoute allowedRoles={['customer']}>
-                            <CustomerPortalLayout />
+                    <CustomerPortalLayout />
                         </ProtectedRoute>
                     </Suspense>
                 }>

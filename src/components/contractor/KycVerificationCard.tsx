@@ -28,7 +28,7 @@ export default function KycVerificationCard({ status: initialStatus = 'not_start
       
       // Try API first
       try {
-        const response = await fetch(`http://192.168.100.58:5001/api/kyc/status?contractorId=${contractorId}`);
+        const response = await fetch(`http://127.0.0.1:5001/api/kyc/status?contractorId=${contractorId}`);
         if (response.ok) {
           const data = await response.json();
           setStatus(data.status || 'not_started');
@@ -171,7 +171,7 @@ export default function KycVerificationCard({ status: initialStatus = 'not_start
 
       // Try to submit to API, but fallback to local storage if backend is down
       try {
-        const response = await fetch('http://192.168.100.58:5001/api/kyc/submit', {
+        const response = await fetch('http://127.0.0.1:5001/api/kyc/submit', {
           method: 'POST',
           body: formData,
         });

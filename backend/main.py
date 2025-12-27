@@ -223,13 +223,13 @@ def create_job():
             'description': data['description'],
             'scheduledTime': data.get('scheduledTime', ''),
             'squareFootage': data.get('squareFootage', ''),
-            'status': 'Open',
+            'status': 'InProgress' if data.get('assignedContractorId') else 'Open',
             'assignedContractorId': data.get('assignedContractorId', ''),
             'materialStatus': data.get('materialStatus', ''),
             'createdAt': datetime.now().isoformat(),
-            'contractorProgress_currentStep': '',
-            'contractorProgress_acknowledged': '',
-            'contractorProgress_lastUpdated': ''
+            'contractorProgress_currentStep': '1' if data.get('assignedContractorId') else '',
+            'contractorProgress_acknowledged': 'False' if data.get('assignedContractorId') else '',
+            'contractorProgress_lastUpdated': datetime.now().isoformat() if data.get('assignedContractorId') else ''
         }
         
         jobs = read_jobs()
