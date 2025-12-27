@@ -183,10 +183,19 @@ export default function JobManagementView({ onJobSelect }: JobManagementViewProp
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {customerJobs.map((job) => (
+            {customerJobs.filter(job => job && job.id).map((job) => (
               <div
                 key={job.id}
-                onClick={() => onJobSelect(job.id)}
+                onClick={() => {
+                  // Verify job still exists before selecting
+                  const jobExists = jobs.find(j => j.id === job.id);
+                  if (jobExists) {
+                    onJobSelect(job.id);
+                  } else {
+                    console.warn(`Job ${job.id} no longer exists. Refreshing jobs list...`);
+                    refreshJobs();
+                  }
+                }}
                 className="glass-card p-6 rounded-2xl cursor-pointer hover:border-emerald-500/30 transition-all group"
               >
                 <div className="flex items-start justify-between mb-4">

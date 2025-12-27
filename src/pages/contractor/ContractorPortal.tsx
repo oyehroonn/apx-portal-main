@@ -42,7 +42,7 @@ export default function ContractorPortal() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const { completedJobs, completedJobsCount } = useContractorJobs();
-  const { getAvailableJobs, getJobsByContractor, assignContractor, refreshJobs } = useJobs();
+  const { getAvailableJobs, getJobsByContractor, assignContractor, refreshJobs, getJobById } = useJobs();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [showCompletedJobs, setShowCompletedJobs] = useState(false);
   const [showProjects, setShowProjects] = useState(false);
@@ -75,10 +75,23 @@ export default function ContractorPortal() {
   );
 
   const handleAcceptJob = async (jobId: string) => {
+    // Refresh jobs first to ensure we have the latest state
+    await refreshJobs();
+    
+    // Verify job exists before accepting
+    const job = getAvailableJobs(currentUser?.trade).find(j => j.id === jobId);
+    if (!job) {
+      console.warn(`Job ${jobId} not found or no longer available.`);
+      alert('This job is no longer available. The job list has been refreshed.');
+      return;
+    }
+
     const contractorId = (currentUser as any)?.profileID || (currentUser as any)?.id || currentUser?.id;
     if (contractorId) {
       try {
         await assignContractor(jobId, contractorId);
+        // Wait for the state to update before navigating
+        await refreshJobs();
         navigate(`/contractor/job-flow-demo?auto=1&jobId=${jobId}`);
       } catch (error: any) {
         console.error('Failed to assign job:', error);
@@ -87,7 +100,17 @@ export default function ContractorPortal() {
     }
   };
 
-  const handleResumeJob = (jobId: string) => {
+  const handleResumeJob = async (jobId: string) => {
+    // Refresh jobs first to ensure we have the latest state
+    await refreshJobs();
+    
+    // Verify job exists before navigating
+    const job = getJobById(jobId);
+    if (!job) {
+      console.warn(`Job ${jobId} not found.`);
+      alert('This job is no longer available. The job list has been refreshed.');
+      return;
+    }
     navigate(`/contractor/job-flow-demo?auto=1&jobId=${jobId}`);
   };
 
@@ -390,7 +413,7 @@ export default function ContractorPortal() {
                         <div className="flex flex-col md:flex-row">
                           {/* Map visual placeholder */}
                           <div className="h-32 md:h-auto md:w-48 bg-slate-800 relative overflow-hidden">
-                            <div className="absolute inset-0 opacity-30 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-118.4,34.0,12,0/400x400?access_token=pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGZ4...')] bg-cover bg-center mix-blend-overlay" />
+                            <div className="absolute inset-0 opacity-30 bg-gradient-to-br from-emerald-900/40 via-slate-900/60 to-slate-950 bg-cover bg-center mix-blend-overlay" />
                             <div className="absolute inset-0 bg-emerald-900/20 mix-blend-overlay" />
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]">
                               <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />

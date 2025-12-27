@@ -35,7 +35,7 @@ interface JobsContextType {
   createJob: (job: Omit<CustomerJob, 'id' | 'createdAt' | 'status'> & { assignedContractorId?: string | number }) => Promise<CustomerJob>;
   updateJob: (jobId: string, updates: Partial<CustomerJob>) => Promise<void>;
   getJobById: (jobId: string) => CustomerJob | undefined;
-  getJobsByCustomer: (customerEmail: string) => CustomerJob[];
+  getJobsByCustomer: (customerEmail: string, profileID?: string) => CustomerJob[];
   getAvailableJobs: (trade?: string) => CustomerJob[];
   getJobsByContractor: (contractorId: string | number) => CustomerJob[];
   assignContractor: (jobId: string, contractorId: string | number) => Promise<void>;
@@ -172,7 +172,8 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
     try {
       const existingJob = jobs.find(j => j.id === jobId);
       if (!existingJob) {
-        throw new Error('Job not found');
+        console.warn(`Job ${jobId} not found in local state. Skipping update.`);
+        return; // Don't throw, just return silently
       }
 
       const updatedJob = { ...existingJob, ...updates };
@@ -185,7 +186,13 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        if (response.status === 404) {
+          console.warn(`Job ${jobId} not found on server. It may have been deleted.`);
+          // Remove from local state if it doesn't exist on server
+          setJobs(prevJobs => prevJobs.filter(j => j.id !== jobId));
+          return; // Don't throw for 404, just return
+        }
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update job' }));
         throw new Error(errorData.error || 'Failed to update job');
       }
 
@@ -193,14 +200,28 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
       await refreshJobs();
     } catch (err: any) {
       console.error('Error updating job:', err);
-      throw err;
+      // Only throw if it's not a "not found" error
+      if (!err.message?.includes('not found') && !err.message?.includes('Job not found')) {
+        throw err;
+      }
     }
   };
 
-  const getJobById = (jobId: string) => jobs.find(j => j.id === jobId);
+  const getJobById = (jobId: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    // Only return job if it exists in the backend (jobs array is populated from API)
+    return job;
+  };
 
-  const getJobsByCustomer = (customerEmail: string) => 
-    jobs.filter(j => j.customerEmail === customerEmail);
+  const getJobsByCustomer = (customerEmail: string, profileID?: string) => {
+    // Filter by profileID first (preferred), then by email (fallback)
+    return jobs.filter(j => {
+      if (profileID && j.profileID) {
+        return j.profileID === profileID;
+      }
+      return j.customerEmail === customerEmail;
+    });
+  };
 
   const getAvailableJobs = (trade?: string) => 
     jobs.filter(j => 
@@ -225,16 +246,9 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
         throw new Error(errorData.error || 'Failed to assign contractor');
       }
 
-      // Update local state immediately for better UX
-      await updateJob(jobId, { 
-        assignedContractorId: contractorId, 
-        status: 'InProgress',
-        contractorProgress: {
-          currentStep: 1,
-          acknowledged: false,
-          lastUpdated: new Date().toISOString(),
-        },
-      });
+      // Refresh jobs from server to get the updated state
+      // The backend has already updated the job status
+      await refreshJobs();
     } catch (err: any) {
       console.error('Error assigning contractor:', err);
       throw err;
@@ -242,6 +256,12 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateContractorProgress = async (jobId: string, progress: CustomerJob['contractorProgress']) => {
+    // Check if job exists before trying to update
+    const job = getJobById(jobId);
+    if (!job) {
+      console.warn(`Cannot update progress for job ${jobId}: job not found`);
+      return; // Don't throw, just return silently
+    }
     await updateJob(jobId, { contractorProgress: progress });
   };
 

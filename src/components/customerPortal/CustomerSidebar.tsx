@@ -51,9 +51,9 @@ export default function CustomerSidebar({
             {/* Workflow Steps Navigation */}
             <nav className="flex-1 px-4 py-8 space-y-2">
                 {hasSelectedJob && (
-                    <div className="hidden lg:block px-4 mb-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-                        Renovation Workflow
-                    </div>
+                <div className="hidden lg:block px-4 mb-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+                    Renovation Workflow
+                </div>
                 )}
                 {!hasSelectedJob && (
                     <div className="hidden lg:block px-4 mb-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">

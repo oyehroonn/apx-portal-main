@@ -27,10 +27,52 @@ export default function ContractorJobFlowDemo() {
   const location = useLocation();
   const navigate = useNavigate();
   const { addCompletedJob } = useContractorJobs();
-  const { getJobById, updateContractorProgress, updateJob } = useJobs();
+  const { getJobById, updateContractorProgress, updateJob, refreshJobs, loading, jobs } = useJobs();
   const autoView = useMemo(() => new URLSearchParams(location.search).get('auto') === '1', [location.search]);
   const jobId = useMemo(() => new URLSearchParams(location.search).get('jobId'), [location.search]);
-  const job = jobId ? getJobById(jobId) : null;
+  const [jobLoading, setJobLoading] = useState(true);
+  const [hasTriedRefresh, setHasTriedRefresh] = useState(false);
+  
+  // Get job from the current jobs state (reactive)
+  const job = useMemo(() => {
+    if (!jobId) return null;
+    return jobs.find(j => j.id === jobId) || null;
+  }, [jobId, jobs]);
+
+  // Refresh jobs on mount to ensure we have the latest data
+  useEffect(() => {
+    const loadJob = async () => {
+      setJobLoading(true);
+      try {
+        await refreshJobs();
+      } catch (err) {
+        console.error('Error refreshing jobs:', err);
+      }
+      setJobLoading(false);
+      setHasTriedRefresh(true);
+    };
+    if (jobId && !hasTriedRefresh) {
+      loadJob();
+    } else if (!jobId) {
+      setJobLoading(false);
+    }
+  }, [jobId, refreshJobs, hasTriedRefresh]);
+
+  // Only redirect if job doesn't exist AFTER loading is complete AND we've tried to refresh
+  useEffect(() => {
+    if (autoView && jobId && !job && !jobLoading && !loading && hasTriedRefresh) {
+      // Give a bit more time for state to settle
+      const timer = setTimeout(() => {
+        // Check again from the jobs array directly
+        const currentJob = jobs.find(j => j.id === jobId);
+        if (!currentJob) {
+          console.warn(`Job ${jobId} not found after loading. Redirecting to contractor portal...`);
+          navigate('/contractor/portal', { replace: true });
+        }
+      }, 1000); // Increased timeout to allow more time for state updates
+      return () => clearTimeout(timer);
+    }
+  }, [autoView, jobId, job, jobLoading, loading, hasTriedRefresh, jobs, navigate]);
 
   const [currentRole, setCurrentRole] = useState<RoleChoice>('contractor');
   const [view, setView] = useState<'login' | 'customer' | 'contractor'>(autoView ? 'contractor' : 'login');
@@ -47,14 +89,18 @@ export default function ContractorJobFlowDemo() {
 
   // Save progress when step or acknowledged changes
   useEffect(() => {
-    if (jobId && view === 'contractor' && step >= 1) {
+    if (jobId && view === 'contractor' && step >= 1 && job) {
+      // Only update if job exists
       updateContractorProgress(jobId, {
         currentStep: step,
         acknowledged,
         lastUpdated: new Date().toISOString(),
+      }).catch(err => {
+        // Silently handle errors - job might not exist
+        console.warn('Failed to update contractor progress:', err);
       });
     }
-  }, [step, acknowledged, jobId, view, updateContractorProgress]);
+  }, [step, acknowledged, jobId, view, updateContractorProgress, job]);
 
   const handleEnter = () => {
     if (currentRole === 'contractor') {
@@ -67,11 +113,15 @@ export default function ContractorJobFlowDemo() {
 
   const goToStep = (next: 1 | 2 | 3 | 4 | 5) => {
     setStep(next);
-    if (jobId) {
+    if (jobId && job) {
+      // Only update if job exists
       updateContractorProgress(jobId, {
         currentStep: next,
         acknowledged,
         lastUpdated: new Date().toISOString(),
+      }).catch(err => {
+        // Silently handle errors - job might not exist
+        console.warn('Failed to update contractor progress:', err);
       });
     }
   };
@@ -189,7 +239,17 @@ export default function ContractorJobFlowDemo() {
       )}
 
       {/* CONTRACTOR JOB FLOW VIEW */}
-      {view === 'contractor' && (
+      {view === 'contractor' && (jobLoading || loading) && (
+        <div className="flex flex-1 h-screen w-full relative bg-slate-950 text-white overflow-hidden items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 mx-auto border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+            <p className="text-slate-400 text-sm">Loading job details...</p>
+          </div>
+        </div>
+      )}
+
+      {/* CONTRACTOR JOB FLOW VIEW - Only show when not loading */}
+      {view === 'contractor' && !jobLoading && !loading && (
         <div className="flex flex-1 h-screen w-full relative bg-slate-950 text-white overflow-hidden">
           {/* Sidebar */}
           <aside className="w-72 border-r border-white/5 flex flex-col bg-[#050508] z-30 shrink-0">

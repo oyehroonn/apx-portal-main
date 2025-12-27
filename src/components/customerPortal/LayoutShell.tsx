@@ -47,9 +47,11 @@ export default function LayoutShell({ job: initialJob, customerName, customerAva
             setSelectedJob(convertedJob);
             setCurrentStep('overview');
         } else {
-            // Fallback to mock if job not found
-            setSelectedJob(mockCustomerJob);
-            setCurrentStep('overview');
+            // Job doesn't exist - don't select it, just show error or stay on job management
+            console.warn(`Job ${jobId} not found. It may have been deleted.`);
+            // Stay on job management view
+            setCurrentStep('job-management');
+            setSelectedJob(null);
         }
     };
 

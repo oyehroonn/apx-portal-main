@@ -269,15 +269,18 @@ def update_job(job_id):
         if job_index is None:
             return jsonify({'error': 'Job not found'}), 404
         
-        # Update job fields
+        # Update job fields (skip jobID as it shouldn't be changed)
         for key, value in data.items():
-            if key == 'contractorProgress':
+            if key == 'jobID':
+                continue  # Skip jobID, it's immutable
+            elif key == 'contractorProgress':
                 # Handle nested contractorProgress object
                 if isinstance(value, dict):
                     jobs[job_index][f'contractorProgress_currentStep'] = str(value.get('currentStep', ''))
                     jobs[job_index][f'contractorProgress_acknowledged'] = str(value.get('acknowledged', ''))
                     jobs[job_index][f'contractorProgress_lastUpdated'] = value.get('lastUpdated', '')
-            else:
+            elif key in jobs[job_index]:
+                # Only update fields that exist in the job record
                 jobs[job_index][key] = value
         
         write_jobs(jobs)
