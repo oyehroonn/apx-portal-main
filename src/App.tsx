@@ -29,7 +29,8 @@ const AdminMeetings = lazy(() => import('./pages/admin/AdminMeetings'));
 const AdminLeads = lazy(() => import('./pages/admin/AdminLeads'));
 
 // Investor Portal
-const InvestorPortal = lazy(() => import('./pages/investor/InvestorPortal'));
+const InvestorDashboard = lazy(() => import('./pages/investor/InvestorDashboard'));
+const InvestorReports = lazy(() => import('./pages/investor/InvestorReports'));
 const PropertyDetailView = lazy(() => import('./pages/investor/PropertyDetailView'));
 
 // Customer Portal (Magic Links)
@@ -258,13 +259,13 @@ function App() {
                     }
                 />
 
-                {/* Investor Portal - New unified portal */}
+                {/* Investor Portal */}
                 <Route
                     path="/investor/dashboard"
                     element={
                         <Suspense fallback={<LoadingFallback />}>
                         <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorPortal />
+                            <InvestorDashboard />
                         </ProtectedRoute>
                         </Suspense>
                     }
@@ -274,7 +275,7 @@ function App() {
                     element={
                         <Suspense fallback={<LoadingFallback />}>
                         <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorPortal />
+                            <InvestorDashboard />
                         </ProtectedRoute>
                         </Suspense>
                     }
@@ -284,7 +285,7 @@ function App() {
                     element={
                         <Suspense fallback={<LoadingFallback />}>
                         <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorPortal />
+                            <InvestorDashboard />
                         </ProtectedRoute>
                         </Suspense>
                     }
@@ -294,7 +295,7 @@ function App() {
                     element={
                         <Suspense fallback={<LoadingFallback />}>
                         <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorPortal />
+                            <InvestorDashboard />
                         </ProtectedRoute>
                         </Suspense>
                     }
@@ -304,7 +305,7 @@ function App() {
                     element={
                         <Suspense fallback={<LoadingFallback />}>
                         <ProtectedRoute allowedRoles={['investor']}>
-                            <InvestorPortal />
+                            <InvestorReports />
                         </ProtectedRoute>
                         </Suspense>
                     }
