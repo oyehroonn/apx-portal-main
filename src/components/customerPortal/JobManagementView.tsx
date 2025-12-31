@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useJobs } from '@/context/JobsContext';
+import { getAllMockJobs, getMockJobsByCustomer, createMockJob } from '@/data/customerPortalJobsMock';
 import {
   Plus,
   MapPin,
@@ -20,7 +20,6 @@ interface JobManagementViewProps {
 
 export default function JobManagementView({ onJobSelect }: JobManagementViewProps) {
   const { currentUser } = useAuth();
-  const { jobs, createJob, getJobsByCustomer, loading, error, refreshJobs } = useJobs();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     jobName: '',
@@ -33,13 +32,11 @@ export default function JobManagementView({ onJobSelect }: JobManagementViewProp
     squareFootage: '',
   });
 
-  // Get customer jobs filtered by profileID (preferred) or email (fallback)
-  const customerJobs = getJobsByCustomer(currentUser?.email || '', currentUser?.profileID);
-  
-  // Refresh jobs when component mounts
-  React.useEffect(() => {
-    refreshJobs();
-  }, [refreshJobs]);
+  // Get customer jobs filtered by profileID (preferred) or email (fallback) using mock data
+  const customerJobs = getMockJobsByCustomer(currentUser?.email || '', currentUser?.profileID);
+  const jobs = getAllMockJobs();
+  const loading = false;
+  const error = null;
 
   // Check if user has profileID
   const hasProfileID = !!currentUser?.profileID;
@@ -60,7 +57,7 @@ export default function JobManagementView({ onJobSelect }: JobManagementViewProp
     }
 
     try {
-      const newJob = await createJob({
+      const newJob = createMockJob({
         jobName: formData.jobName,
         propertyAddress: formData.propertyAddress,
         city: formData.city,
@@ -148,12 +145,6 @@ export default function JobManagementView({ onJobSelect }: JobManagementViewProp
         {error && (
           <div className="glass-panel p-6 rounded-2xl border border-red-500/20 bg-red-500/5 mb-6">
             <p className="text-sm text-red-400">Error loading jobs: {error}</p>
-            <button
-              onClick={() => refreshJobs()}
-              className="mt-2 text-xs text-red-300 hover:text-red-200 underline"
-            >
-              Retry
-            </button>
           </div>
         )}
 
@@ -192,8 +183,7 @@ export default function JobManagementView({ onJobSelect }: JobManagementViewProp
                   if (jobExists) {
                     onJobSelect(job.id);
                   } else {
-                    console.warn(`Job ${job.id} no longer exists. Refreshing jobs list...`);
-                    refreshJobs();
+                    console.warn(`Job ${job.id} no longer exists.`);
                   }
                 }}
                 className="glass-card p-6 rounded-2xl cursor-pointer hover:border-emerald-500/30 transition-all group"

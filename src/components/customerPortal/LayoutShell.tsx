@@ -7,10 +7,10 @@ import MaterialSourcingView from './MaterialSourcingView';
 import LiveTrackingView from './LiveTrackingView';
 import CompletionView from './CompletionView';
 import JobManagementView from './JobManagementView';
-import { useJobs } from '@/context/JobsContext';
+import { getMockJobById } from '@/data/customerPortalJobsMock';
 import { convertJobToCustomerPortal } from '@/utils/jobConverter';
-import { mockCustomerJob } from '@/data/customerPortalMockData';
 import type { CustomerJob, WorkflowStep } from '@/types/customerPortal';
+import type { CustomerJob as JobsContextJob } from '@/context/JobsContext';
 
 interface LayoutShellProps {
     job?: CustomerJob;
@@ -19,7 +19,6 @@ interface LayoutShellProps {
 }
 
 export default function LayoutShell({ job: initialJob, customerName, customerAvatar }: LayoutShellProps) {
-    const { getJobById } = useJobs();
     const [currentStep, setCurrentStep] = useState<WorkflowStep>('job-management');
     const [selectedJob, setSelectedJob] = useState<CustomerJob | null>(initialJob || null);
 
@@ -30,17 +29,17 @@ export default function LayoutShell({ job: initialJob, customerName, customerAva
             setCurrentStep('job-management');
         } else {
             // For other steps, ensure a job is selected
-            if (!selectedJob && step !== 'job-management') {
+            if (!selectedJob) {
                 // Don't allow navigation to workflow steps without a selected job
                 return;
             }
-        setCurrentStep(step);
+            setCurrentStep(step);
         }
     };
 
     const handleJobSelect = async (jobId: string) => {
-        // Get real job data from JobsContext
-        const realJob = getJobById(jobId);
+        // Get job data from mock data
+        const realJob = getMockJobById(jobId) as JobsContextJob | undefined;
         if (realJob) {
             // Convert to CustomerPortal format (now async)
             const convertedJob = await convertJobToCustomerPortal(realJob);
@@ -102,9 +101,6 @@ export default function LayoutShell({ job: initialJob, customerName, customerAva
                 return <JobManagementView onJobSelect={handleJobSelect} />;
         }
     };
-
-    // Show header only when a job is selected and not on job-management view
-    const displayJob = selectedJob || initialJob;
 
     return (
         <div className="flex h-screen w-full relative">

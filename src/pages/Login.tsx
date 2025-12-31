@@ -95,15 +95,21 @@ export default function Login() {
             const user = storedUserStr ? JSON.parse(storedUserStr) : demoUser;
             
             if (user) {
-                // For contractor demo logins, send directly to the main contractor portal
+                // Navigate based on role
                 if (user.role === 'contractor') {
                     navigate('/contractor/portal');
+                } else if (user.role === 'investor') {
+                    navigate('/investor/dashboard');
+                } else if (user.role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else if (user.role === 'customer') {
+                    navigate('/customer/dashboard');
                 } else {
-                navigate(getDashboardRoute(user.role));
-            }
+                    navigate(getDashboardRoute(user.role));
+                }
                 setLoading(false);
             } else {
-            setError('Error logging in');
+                setError('Error logging in');
                 setLoading(false);
             }
         } catch (err: any) {

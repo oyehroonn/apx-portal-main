@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, User, Lock } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useJobs } from '@/context/JobsContext';
+import { createMockJob } from '@/data/customerPortalJobsMock';
 import type { Contractor } from '@/types/customerPortal';
 
 interface RebookModalProps {
@@ -12,7 +12,6 @@ interface RebookModalProps {
 
 export default function RebookModal({ contractor, onClose, onJobCreated }: RebookModalProps) {
   const { currentUser } = useAuth();
-  const { createJob } = useJobs();
   const [formData, setFormData] = useState({
     jobName: '',
     propertyAddress: '',
@@ -36,7 +35,7 @@ export default function RebookModal({ contractor, onClose, onJobCreated }: Reboo
     }
 
     try {
-      const newJob = await createJob({
+      const newJob = createMockJob({
         jobName: formData.jobName,
         propertyAddress: formData.propertyAddress,
         city: formData.city,

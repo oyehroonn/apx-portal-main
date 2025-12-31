@@ -2,35 +2,15 @@ import type { CustomerJob as JobsContextJob } from '@/context/JobsContext';
 import type { CustomerJob as CustomerPortalJob, Contractor } from '@/types/customerPortal';
 import { users } from '@/data/mockData';
 
-const API_BASE_URL = 'http://127.0.0.1:5001/api';
-
 /**
- * Fetches contractor information by ID
+ * Gets contractor information by ID (using mock data only)
  */
 async function getContractorInfo(contractorId: string | number | undefined): Promise<Contractor | null> {
   if (!contractorId || contractorId === '1') {
     return null;
   }
 
-  try {
-    // Try API first
-    const response = await fetch(`${API_BASE_URL}/profiles/${contractorId}`);
-    if (response.ok) {
-      const profile = await response.json();
-      return {
-        id: profile.profileID || contractorId.toString(),
-        name: profile.email?.split('@')[0] || 'Contractor',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150',
-        rating: 4.9,
-        jobsCount: 128,
-        role: profile.user_role === 'contractor' ? 'Lead Contractor' : 'Contractor',
-      };
-    }
-  } catch (error) {
-    console.error('Failed to fetch contractor from API:', error);
-  }
-
-  // Fallback to mock data
+  // Use mock data only
   const contractor = users.find(u => 
     (u.id?.toString() === contractorId.toString()) || 
     (u.profileID?.toString() === contractorId.toString())
@@ -47,7 +27,15 @@ async function getContractorInfo(contractorId: string | number | undefined): Pro
     };
   }
 
-  return null;
+  // Default mock contractor if not found
+  return {
+    id: contractorId.toString(),
+    name: 'Mike Ross',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150',
+    rating: 4.9,
+    jobsCount: 128,
+    role: 'Lead Contractor',
+  };
 }
 
 /**
